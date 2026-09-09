@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Default input styling to prevent white-on-white text */
+  input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  .dark input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
+  .dark select,
+  .dark textarea {
+    background-color: #334155;
+    color: #f8fafc;
+  }
+
+  option {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  .dark option {
+    background-color: #334155;
+    color: #f8fafc;
+  }
+
+  /* Ensure A4 RPH Paper is ALWAYS strictly dark text on pure white paper */
+  #rph-pdf-printable-area {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  /* Crisp table grid borders for RPH PDF and Preview */
+  #rph-pdf-printable-area table {
+    border-collapse: collapse !important;
+  }
+
+  #rph-pdf-printable-area table,
+  #rph-pdf-printable-area th,
+  #rph-pdf-printable-area td {
+    border-color: #0f172a !important;
+  }
+
+  #rph-pdf-printable-area * {
+    color: #0f172a;
+  }
+
+  #rph-pdf-printable-area .text-white,
+  #rph-pdf-printable-area .bg-emerald-800,
+  #rph-pdf-printable-area .bg-emerald-800 * {
+    color: #ffffff !important;
+  }
+
+  #rph-pdf-printable-area .text-emerald-950 {
+    color: #022c22 !important;
+  }
+
+  #rph-pdf-printable-area .text-emerald-900 {
+    color: #064e3b !important;
+  }
+
+  #rph-pdf-printable-area .text-emerald-800 {
+    color: #065f46 !important;
+  }
+
+  #rph-pdf-printable-area .text-amber-900 {
+    color: #78350f !important;
+  }
+
+  #rph-pdf-printable-area .text-rose-500 {
+    color: #f43f5e !important;
+  }
+
+  #rph-pdf-printable-area .text-slate-500 {
+    color: #64748b !important;
+  }
+
+  #rph-pdf-printable-area .text-slate-600 {
+    color: #475569 !important;
+  }
+
+  #rph-pdf-printable-area .text-slate-700 {
+    color: #334155 !important;
+  }
+
+  #rph-pdf-printable-area .text-slate-800 {
+    color: #1e293b !important;
+  }
+
+  #rph-pdf-printable-area .text-slate-900 {
+    color: #0f172a !important;
+  }
+}
+
+.font-jawi {
+  font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif;
+  font-feature-settings: "liga" 1, "calt" 1;
+}
+
+/* Print Specific Rules for A4 Portrait */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  #rph-pdf-preview-container {
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  table {
+    page-break-inside: avoid;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Animations for conditional fields */
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDownFade 0.25s ease-out forwards;
+}
+
+/* Hide scrollbars for smooth mobile touch swipe */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
