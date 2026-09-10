@@ -614,3 +614,44 @@ console.log('✓ Susunan tarikh Jawi terbalik dengan nombor (tahun / bulan / har
 console.log('----------------------------------------------------');
 console.log('SEMUA 15 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');
 
+// 16. Menguji Ikon Favicon & Ikon APK (KAFA MADRASAH AS-SOBIRIN.svg)
+console.log('16. Menguji Ikon Favicon & Ikon APK (KAFA MADRASAH AS-SOBIRIN):');
+const indexHtml = fs.readFileSync('./index.html', 'utf-8');
+const manifestRaw = fs.readFileSync('./public/manifest.json', 'utf-8');
+const manifest = JSON.parse(manifestRaw);
+
+// A. Favicon & Metadata dalam index.html
+assert.ok(fs.existsSync('./KAFA MADRASAH AS-SOBIRIN.svg'), 'Fail asal KAFA MADRASAH AS-SOBIRIN.svg mesti wujud');
+assert.ok(fs.existsSync('./public/favicon.svg'), 'Fail public/favicon.svg mesti wujud');
+assert.ok(fs.existsSync('./public/favicon.ico'), 'Fail public/favicon.ico mesti wujud');
+assert.ok(indexHtml.includes('href="/favicon.svg"'), 'index.html mesti menghubungkan favicon.svg');
+assert.ok(indexHtml.includes('href="/manifest.json"'), 'index.html mesti menghubungkan manifest.json');
+assert.ok(indexHtml.includes('apple-touch-icon'), 'index.html mesti menghubungkan apple-touch-icon');
+console.log('✓ Favicon SVG dan ICO rasmi KAFA MADRASAH AS-SOBIRIN aktif dalam index.html.');
+
+// B. Manifest APK & PWA
+assert.ok(manifest.icons && manifest.icons.length >= 4, 'manifest.json mesti mengandungi senarai ikon APK lengkap');
+const has192 = manifest.icons.some(icon => icon.sizes === '192x192');
+const has512 = manifest.icons.some(icon => icon.sizes === '512x512');
+const hasMaskable = manifest.icons.some(icon => icon.purpose === 'maskable');
+assert.ok(has192, 'manifest.json mesti ada ikon 192x192');
+assert.ok(has512, 'manifest.json mesti ada ikon 512x512');
+assert.ok(hasMaskable, 'manifest.json mesti ada ikon maskable untuk Android launcher');
+assert.ok(fs.existsSync('./public/icon-192.png'), 'public/icon-192.png mesti wujud');
+assert.ok(fs.existsSync('./public/icon-512.png'), 'public/icon-512.png mesti wujud');
+assert.ok(fs.existsSync('./public/icons/icon-maskable-192x192.png'), 'public/icons/icon-maskable-192x192.png mesti wujud');
+console.log('✓ Konfigurasi WebAPK / PWA Manifest dengan ikon resolusi tinggi dan maskable disahkan.');
+
+// C. Sumber Ikon Android APK Native (Mipmap)
+assert.ok(fs.existsSync('./resources/android/mipmap-mdpi/ic_launcher.png'), 'Mipmap MDPI (48px) mesti wujud');
+assert.ok(fs.existsSync('./resources/android/mipmap-hdpi/ic_launcher.png'), 'Mipmap HDPI (72px) mesti wujud');
+assert.ok(fs.existsSync('./resources/android/mipmap-xhdpi/ic_launcher.png'), 'Mipmap XHDPI (96px) mesti wujud');
+assert.ok(fs.existsSync('./resources/android/mipmap-xxhdpi/ic_launcher.png'), 'Mipmap XXHDPI (144px) mesti wujud');
+assert.ok(fs.existsSync('./resources/android/mipmap-xxxhdpi/ic_launcher.png'), 'Mipmap XXXHDPI (192px) mesti wujud');
+assert.ok(fs.existsSync('./resources/icon.png'), 'Master icon 1024px mesti wujud');
+console.log('✓ Sumber ikon Android APK natif (MDPI hingga XXXHDPI & Master 1024px) lengkap dijana.');
+
+console.log('----------------------------------------------------');
+console.log('SEMUA 16 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');
+
+
