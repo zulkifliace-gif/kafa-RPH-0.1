@@ -537,9 +537,10 @@ for (const item of requiredBasicCards) {
 }
 console.log('✓ Kesemua 7 tajuk bahagian asas (Minggu, Hari, Kelas, Masa, Tarikh, Tahun, Mata Pelajaran) disahkan wujud dalam Tab 2.');
 
-// B. Susunan Tarikh Jawi Terbalik (tahun / bulan / hari)
+// B. Susunan Tarikh Jawi Terbalik (tahun / bulan / hari) menggunakan NOMBOR (bukan ejaan perkataan)
 assert.ok(jawiHelperCode.includes('export function toJawiDate'), 'toJawiDate mesti wujud dalam jawiHelper.ts');
-assert.ok(jawiHelperCode.includes('${year} / ${jawiM} / ${day}'), 'toJawiDate mesti menyusun tarikh: tahun / bulan / hari');
+assert.ok(jawiHelperCode.includes('toWesternDigits'), 'toWesternDigits mesti wujud dalam jawiHelper.ts');
+assert.ok(jawiHelperCode.includes('${toArabicDigits(year)} / ${toArabicDigits(monthNum)} / ${toArabicDigits(day)}'), 'toJawiDate mesti menyusun tarikh: tahun / bulan / hari dalam nombor');
 
 // Uji logik fungsi toJawiDate secara langsung
 function testToArabicDigits(str) {
@@ -550,41 +551,65 @@ function testToArabicDigits(str) {
   return String(str).replace(/[0-9]/g, (w) => westernToArabic[w] || w);
 }
 
-const JAWI_MONTHS = {
-  'januari': 'جانواري', 'februari': 'فيبرواري', 'mac': 'مچ',
-  'april': 'اڤريل', 'mei': 'مي', 'jun': 'جون',
-  'julai': 'جولاي', 'ogos': 'اوݢوس', 'september': 'سڤتيمبر',
-  'oktober': 'اوکتوبر', 'november': 'نوۏيمبر', 'disember': 'ديسيمبر'
+function testToWesternDigits(str) {
+  const arabicToWestern = {
+    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+    '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
+  };
+  return str.replace(/[\u0660-\u0669]/g, (a) => arabicToWestern[a] || a);
+}
+
+const MONTH_MAP = {
+  'januari': 1, 'februari': 2, 'mac': 3, 'april': 4,
+  'mei': 5, 'jun': 6, 'julai': 7, 'ogos': 8,
+  'september': 9, 'oktober': 10, 'november': 11, 'disember': 12,
+  'jan': 1, 'feb': 2, 'apr': 4, 'jul': 7, 'ogo': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dis': 12,
+  'january': 1, 'february': 2, 'march': 3, 'may': 5, 'june': 6, 'july': 7, 'august': 8,
+  'sept': 9, 'october': 10, 'oct': 10, 'december': 12, 'dec': 12,
+  'جانواري': 1, 'فيبرواري': 2, 'مچ': 3, 'اڤريل': 4,
+  'مي': 5, 'جون': 6, 'جولاي': 7, 'اوݢوس': 8,
+  'سڤتيمبر': 9, 'اوکتوبر': 10, 'نوۏيمبر': 11, 'ديسيمبر': 12
 };
 
 function simToJawiDate(dateStr) {
-  const trimmed = dateStr.trim();
-  const bulanMalay = ['januari', 'februari', 'mac', 'april', 'mei', 'jun', 'julai', 'ogos', 'september', 'oktober', 'november', 'disember'];
+  if (!dateStr) return '';
+  const trimmed = testToWesternDigits(dateStr.trim());
 
-  const dmyWords = trimmed.match(/^([0-9\u0660-\u0669]{1,2})\s+([a-zA-Z\u0600-\u06FF]+)\s+([0-9\u0660-\u0669]{4})$/);
+  const dmyWords = trimmed.match(/^([0-9]{1,2})\s+([a-zA-Z\u0600-\u06FF]+)\s+([0-9]{4})$/);
   if (dmyWords) {
-    const day = testToArabicDigits(dmyWords[1]);
+    const day = parseInt(dmyWords[1], 10);
     const rawM = dmyWords[2].toLowerCase();
-    const jawiM = JAWI_MONTHS[rawM] || dmyWords[2];
-    const year = testToArabicDigits(dmyWords[3]);
-    return `${year} / ${jawiM} / ${day}`;
+    const monthNum = MONTH_MAP[rawM];
+    const year = parseInt(dmyWords[3], 10);
+    if (monthNum) {
+      return `${testToArabicDigits(year)} / ${testToArabicDigits(monthNum)} / ${testToArabicDigits(day)}`;
+    }
   }
 
-  const iso = trimmed.match(/^([0-9]{4})[-/.]([0-9]{1,2})[-/.]([0-9]{1,2})$/);
-  if (iso) {
-    const year = testToArabicDigits(iso[1]);
-    const mIdx = parseInt(iso[2], 10) - 1;
-    const jawiM = JAWI_MONTHS[bulanMalay[mIdx]] || testToArabicDigits(iso[2]);
-    const day = testToArabicDigits(parseInt(iso[3], 10));
-    return `${year} / ${jawiM} / ${day}`;
+  const ymd = trimmed.match(/^([0-9]{4})\s*[-/.]\s*([0-9]{1,2})\s*[-/.]\s*([0-9]{1,2})$/);
+  if (ymd) {
+    const year = parseInt(ymd[1], 10);
+    const month = parseInt(ymd[2], 10);
+    const day = parseInt(ymd[3], 10);
+    return `${testToArabicDigits(year)} / ${testToArabicDigits(month)} / ${testToArabicDigits(day)}`;
+  }
+
+  const dmy = trimmed.match(/^([0-9]{1,2})\s*[-/.]\s*([0-9]{1,2})\s*[-/.]\s*([0-9]{4})$/);
+  if (dmy) {
+    const day = parseInt(dmy[1], 10);
+    const month = parseInt(dmy[2], 10);
+    const year = parseInt(dmy[3], 10);
+    return `${testToArabicDigits(year)} / ${testToArabicDigits(month)} / ${testToArabicDigits(day)}`;
   }
 
   return '';
 }
 
-assert.strictEqual(simToJawiDate('7 September 2026'), '٢٠٢٦ / سڤتيمبر / ٧', 'Format Jawi 7 September 2026 mestilah tahun / bulan / hari');
-assert.strictEqual(simToJawiDate('2026-09-07'), '٢٠٢٦ / سڤتيمبر / ٧', 'Format Jawi ISO 2026-09-07 mestilah tahun / bulan / hari');
-console.log('✓ Susunan tarikh Jawi terbalik (tahun / bulan / hari) disahkan: ٢٠٢٦ / سڤتيمبر / ٧.');
+assert.strictEqual(simToJawiDate('7 September 2026'), '٢٠٢٦ / ٩ / ٧', 'Format Jawi 7 September 2026 mestilah tahun / nombor bulan / hari (٢٠٢٦ / ٩ / ٧)');
+assert.strictEqual(simToJawiDate('2026-09-07'), '٢٠٢٦ / ٩ / ٧', 'Format Jawi ISO 2026-09-07 mestilah tahun / nombor bulan / hari (٢٠٢٦ / ٩ / ٧)');
+assert.strictEqual(simToJawiDate('07/09/2026'), '٢٠٢٦ / ٩ / ٧', 'Format Jawi 07/09/2026 mestilah tahun / nombor bulan / hari (٢٠٢٦ / ٩ / ٧)');
+assert.strictEqual(simToJawiDate('7 سڤتيمبر 2026'), '٢٠٢٦ / ٩ / ٧', 'Format Jawi daripada perkataan سڤتيمبر mestilah ditukar ke nombor ٩');
+console.log('✓ Susunan tarikh Jawi terbalik dengan nombor (tahun / bulan / hari: ٢٠٢٦ / ٩ / ٧ tanpa ejaan September) disahkan.');
 
 console.log('----------------------------------------------------');
 console.log('SEMUA 15 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');

@@ -151,6 +151,31 @@ export const JAWI_SUBJECTS: Record<string, string> = {
   'akhlak': 'اخلاق'
 };
 
+// Convert Arabic-Indic digits (٠-٩) to Western digits (0-9)
+export function toWesternDigits(str: string | number): string {
+  const arabicToWestern: Record<string, string> = {
+    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+    '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
+  };
+  return String(str).replace(/[\u0660-\u0669]/g, (a) => arabicToWestern[a] || a);
+}
+
+export const MONTH_NAME_TO_NUMBER: Record<string, number> = {
+  // Malay
+  'januari': 1, 'februari': 2, 'mac': 3, 'april': 4,
+  'mei': 5, 'jun': 6, 'julai': 7, 'ogos': 8,
+  'september': 9, 'oktober': 10, 'november': 11, 'disember': 12,
+  // Short Malay
+  'jan': 1, 'feb': 2, 'apr': 4, 'jul': 7, 'ogo': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dis': 12,
+  // English
+  'january': 1, 'february': 2, 'march': 3, 'may': 5, 'june': 6, 'july': 7, 'august': 8,
+  'sept': 9, 'october': 10, 'oct': 10, 'december': 12, 'dec': 12,
+  // Jawi
+  'جانواري': 1, 'فيبرواري': 2, 'مچ': 3, 'اڤريل': 4,
+  'مي': 5, 'جون': 6, 'جولاي': 7, 'اوݢوس': 8,
+  'سڤتيمبر': 9, 'اوکتوبر': 10, 'نوۏيمبر': 11, 'ديسيمبر': 12
+};
+
 export function toJawiDay(day: string): string {
   if (!day) return '';
   const clean = day.trim().toLowerCase();
@@ -159,61 +184,50 @@ export function toJawiDay(day: string): string {
 
 export function toJawiDate(dateStr: string): string {
   if (!dateStr) return '';
-  const trimmed = dateStr.trim();
-
-  const bulanMalay = [
-    'januari', 'februari', 'mac', 'april', 'mei', 'jun',
-    'julai', 'ogos', 'september', 'oktober', 'november', 'disember'
-  ];
+  const trimmed = toWesternDigits(dateStr.trim());
 
   // 1. Pattern: "7 September 2026" or "07 September 2026" or Jawi month "7 سڤتيمبر 2026"
-  const dmyWords = trimmed.match(/^([0-9\u0660-\u0669]{1,2})\s+([a-zA-Z\u0600-\u06FF]+)\s+([0-9\u0660-\u0669]{4})$/);
+  const dmyWords = trimmed.match(/^([0-9]{1,2})\s+([a-zA-Z\u0600-\u06FF]+)\s+([0-9]{4})$/);
   if (dmyWords) {
-    const day = toArabicDigits(dmyWords[1]);
+    const day = parseInt(dmyWords[1], 10);
     const rawM = dmyWords[2].toLowerCase();
-    const jawiM = JAWI_MONTHS[rawM] || dmyWords[2];
-    const year = toArabicDigits(dmyWords[3]);
-    return `${year} / ${jawiM} / ${day}`;
+    const monthNum = MONTH_NAME_TO_NUMBER[rawM];
+    const year = parseInt(dmyWords[3], 10);
+    if (monthNum) {
+      return `${toArabicDigits(year)} / ${toArabicDigits(monthNum)} / ${toArabicDigits(day)}`;
+    }
   }
 
-  // 2. Pattern: ISO "YYYY-MM-DD" or "YYYY/MM/DD"
-  const iso = trimmed.match(/^([0-9]{4})[-/.]([0-9]{1,2})[-/.]([0-9]{1,2})$/);
-  if (iso) {
-    const year = toArabicDigits(iso[1]);
-    const mIdx = parseInt(iso[2], 10) - 1;
-    const jawiM = JAWI_MONTHS[bulanMalay[mIdx]] || toArabicDigits(iso[2]);
-    const day = toArabicDigits(parseInt(iso[3], 10));
-    return `${year} / ${jawiM} / ${day}`;
+  // 2. Pattern: ISO "YYYY-MM-DD" or "YYYY/MM/DD" or "YYYY / M / D"
+  const ymd = trimmed.match(/^([0-9]{4})\s*[-/.]\s*([0-9]{1,2})\s*[-/.]\s*([0-9]{1,2})$/);
+  if (ymd) {
+    const year = parseInt(ymd[1], 10);
+    const month = parseInt(ymd[2], 10);
+    const day = parseInt(ymd[3], 10);
+    return `${toArabicDigits(year)} / ${toArabicDigits(month)} / ${toArabicDigits(day)}`;
   }
 
-  // 3. Pattern: "DD-MM-YYYY" or "DD/MM/YYYY"
-  const dmy = trimmed.match(/^([0-9]{1,2})[-/.]([0-9]{1,2})[-/.]([0-9]{4})$/);
+  // 3. Pattern: "DD-MM-YYYY" or "DD/MM/YYYY" or "D / M / YYYY"
+  const dmy = trimmed.match(/^([0-9]{1,2})\s*[-/.]\s*([0-9]{1,2})\s*[-/.]\s*([0-9]{4})$/);
   if (dmy) {
-    const day = toArabicDigits(parseInt(dmy[1], 10));
-    const mIdx = parseInt(dmy[2], 10) - 1;
-    const jawiM = JAWI_MONTHS[bulanMalay[mIdx]] || toArabicDigits(dmy[2]);
-    const year = toArabicDigits(dmy[3]);
-    return `${year} / ${jawiM} / ${day}`;
+    const day = parseInt(dmy[1], 10);
+    const month = parseInt(dmy[2], 10);
+    const year = parseInt(dmy[3], 10);
+    return `${toArabicDigits(year)} / ${toArabicDigits(month)} / ${toArabicDigits(day)}`;
   }
 
   // 4. Fallback for strings containing month name anywhere
-  for (const [rumiMonth, jawiMonth] of Object.entries(JAWI_MONTHS)) {
-    const reg = new RegExp(`([0-9\\u0660-\\u0669]{1,2})?\\s*\\b${rumiMonth}\\b\\s*([0-9\\u0660-\\u0669]{4})?`, 'i');
+  for (const [mName, mNum] of Object.entries(MONTH_NAME_TO_NUMBER)) {
+    const reg = new RegExp(`([0-9]{1,2})?\\s*\\b${mName}\\b\\s*([0-9]{4})?`, 'i');
     const match = trimmed.match(reg);
     if (match && match[1] && match[2]) {
-      return `${toArabicDigits(match[2])} / ${jawiMonth} / ${toArabicDigits(match[1])}`;
+      const day = parseInt(match[1], 10);
+      const year = parseInt(match[2], 10);
+      return `${toArabicDigits(year)} / ${toArabicDigits(mNum)} / ${toArabicDigits(day)}`;
     }
   }
 
-  let result = trimmed;
-  for (const [rumiMonth, jawiMonth] of Object.entries(JAWI_MONTHS)) {
-    const reg = new RegExp(`\\b${rumiMonth}\\b`, 'i');
-    if (reg.test(result)) {
-      result = result.replace(reg, jawiMonth);
-      break;
-    }
-  }
-  return toArabicDigits(result);
+  return toArabicDigits(trimmed);
 }
 
 export function toJawiSubject(subject: string): string {
