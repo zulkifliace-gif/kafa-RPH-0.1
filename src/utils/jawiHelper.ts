@@ -159,7 +159,53 @@ export function toJawiDay(day: string): string {
 
 export function toJawiDate(dateStr: string): string {
   if (!dateStr) return '';
-  let result = dateStr;
+  const trimmed = dateStr.trim();
+
+  const bulanMalay = [
+    'januari', 'februari', 'mac', 'april', 'mei', 'jun',
+    'julai', 'ogos', 'september', 'oktober', 'november', 'disember'
+  ];
+
+  // 1. Pattern: "7 September 2026" or "07 September 2026" or Jawi month "7 سڤتيمبر 2026"
+  const dmyWords = trimmed.match(/^([0-9\u0660-\u0669]{1,2})\s+([a-zA-Z\u0600-\u06FF]+)\s+([0-9\u0660-\u0669]{4})$/);
+  if (dmyWords) {
+    const day = toArabicDigits(dmyWords[1]);
+    const rawM = dmyWords[2].toLowerCase();
+    const jawiM = JAWI_MONTHS[rawM] || dmyWords[2];
+    const year = toArabicDigits(dmyWords[3]);
+    return `${year} / ${jawiM} / ${day}`;
+  }
+
+  // 2. Pattern: ISO "YYYY-MM-DD" or "YYYY/MM/DD"
+  const iso = trimmed.match(/^([0-9]{4})[-/.]([0-9]{1,2})[-/.]([0-9]{1,2})$/);
+  if (iso) {
+    const year = toArabicDigits(iso[1]);
+    const mIdx = parseInt(iso[2], 10) - 1;
+    const jawiM = JAWI_MONTHS[bulanMalay[mIdx]] || toArabicDigits(iso[2]);
+    const day = toArabicDigits(parseInt(iso[3], 10));
+    return `${year} / ${jawiM} / ${day}`;
+  }
+
+  // 3. Pattern: "DD-MM-YYYY" or "DD/MM/YYYY"
+  const dmy = trimmed.match(/^([0-9]{1,2})[-/.]([0-9]{1,2})[-/.]([0-9]{4})$/);
+  if (dmy) {
+    const day = toArabicDigits(parseInt(dmy[1], 10));
+    const mIdx = parseInt(dmy[2], 10) - 1;
+    const jawiM = JAWI_MONTHS[bulanMalay[mIdx]] || toArabicDigits(dmy[2]);
+    const year = toArabicDigits(dmy[3]);
+    return `${year} / ${jawiM} / ${day}`;
+  }
+
+  // 4. Fallback for strings containing month name anywhere
+  for (const [rumiMonth, jawiMonth] of Object.entries(JAWI_MONTHS)) {
+    const reg = new RegExp(`([0-9\\u0660-\\u0669]{1,2})?\\s*\\b${rumiMonth}\\b\\s*([0-9\\u0660-\\u0669]{4})?`, 'i');
+    const match = trimmed.match(reg);
+    if (match && match[1] && match[2]) {
+      return `${toArabicDigits(match[2])} / ${jawiMonth} / ${toArabicDigits(match[1])}`;
+    }
+  }
+
+  let result = trimmed;
   for (const [rumiMonth, jawiMonth] of Object.entries(JAWI_MONTHS)) {
     const reg = new RegExp(`\\b${rumiMonth}\\b`, 'i');
     if (reg.test(result)) {

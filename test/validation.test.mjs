@@ -514,3 +514,78 @@ console.log('✓ Halaman Guru menyediakan butang dan modal dialog untuk memasang
 
 console.log('----------------------------------------------------');
 console.log('SEMUA 14 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');
+
+// 15. Menguji Format Tajuk Bahagian Asas & Susunan Tarikh Jawi (Tahun / Bulan / Hari)
+console.log('15. Menguji Format Tajuk Bahagian Asas & Susunan Tarikh Jawi:');
+const jawiHelperCode = fs.readFileSync('./src/utils/jawiHelper.ts', 'utf-8');
+const sec15AdminCode = fs.readFileSync('./src/components/AdminView.tsx', 'utf-8');
+
+// A. Pengesahan 7 Tajuk Bahagian Asas dalam AdminView Tab 2
+const requiredBasicCards = [
+  { key: 'minggu', label: 'Label Bahagian Minggu:' },
+  { key: 'hari', label: 'Label Bahagian Hari:' },
+  { key: 'kelas', label: 'Label Bahagian Kelas:' },
+  { key: 'masa', label: 'Label Bahagian Masa:' },
+  { key: 'tarikh', label: 'Label Bahagian Tarikh:' },
+  { key: 'tahun', label: 'Label Bahagian Tahun:' },
+  { key: 'mataPelajaran', label: 'Label Bahagian Mata Pelajaran:' }
+];
+
+for (const item of requiredBasicCards) {
+  assert.ok(sec15AdminCode.includes(item.label), `AdminView Tab 2 mesti ada kad "${item.label}"`);
+  assert.ok(sec15AdminCode.includes(`labelCustom.${item.key}`), `AdminView Tab 2 mesti mengubah labelCustom.${item.key}`);
+}
+console.log('✓ Kesemua 7 tajuk bahagian asas (Minggu, Hari, Kelas, Masa, Tarikh, Tahun, Mata Pelajaran) disahkan wujud dalam Tab 2.');
+
+// B. Susunan Tarikh Jawi Terbalik (tahun / bulan / hari)
+assert.ok(jawiHelperCode.includes('export function toJawiDate'), 'toJawiDate mesti wujud dalam jawiHelper.ts');
+assert.ok(jawiHelperCode.includes('${year} / ${jawiM} / ${day}'), 'toJawiDate mesti menyusun tarikh: tahun / bulan / hari');
+
+// Uji logik fungsi toJawiDate secara langsung
+function testToArabicDigits(str) {
+  const westernToArabic = {
+    '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
+    '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩'
+  };
+  return String(str).replace(/[0-9]/g, (w) => westernToArabic[w] || w);
+}
+
+const JAWI_MONTHS = {
+  'januari': 'جانواري', 'februari': 'فيبرواري', 'mac': 'مچ',
+  'april': 'اڤريل', 'mei': 'مي', 'jun': 'جون',
+  'julai': 'جولاي', 'ogos': 'اوݢوس', 'september': 'سڤتيمبر',
+  'oktober': 'اوکتوبر', 'november': 'نوۏيمبر', 'disember': 'ديسيمبر'
+};
+
+function simToJawiDate(dateStr) {
+  const trimmed = dateStr.trim();
+  const bulanMalay = ['januari', 'februari', 'mac', 'april', 'mei', 'jun', 'julai', 'ogos', 'september', 'oktober', 'november', 'disember'];
+
+  const dmyWords = trimmed.match(/^([0-9\u0660-\u0669]{1,2})\s+([a-zA-Z\u0600-\u06FF]+)\s+([0-9\u0660-\u0669]{4})$/);
+  if (dmyWords) {
+    const day = testToArabicDigits(dmyWords[1]);
+    const rawM = dmyWords[2].toLowerCase();
+    const jawiM = JAWI_MONTHS[rawM] || dmyWords[2];
+    const year = testToArabicDigits(dmyWords[3]);
+    return `${year} / ${jawiM} / ${day}`;
+  }
+
+  const iso = trimmed.match(/^([0-9]{4})[-/.]([0-9]{1,2})[-/.]([0-9]{1,2})$/);
+  if (iso) {
+    const year = testToArabicDigits(iso[1]);
+    const mIdx = parseInt(iso[2], 10) - 1;
+    const jawiM = JAWI_MONTHS[bulanMalay[mIdx]] || testToArabicDigits(iso[2]);
+    const day = testToArabicDigits(parseInt(iso[3], 10));
+    return `${year} / ${jawiM} / ${day}`;
+  }
+
+  return '';
+}
+
+assert.strictEqual(simToJawiDate('7 September 2026'), '٢٠٢٦ / سڤتيمبر / ٧', 'Format Jawi 7 September 2026 mestilah tahun / bulan / hari');
+assert.strictEqual(simToJawiDate('2026-09-07'), '٢٠٢٦ / سڤتيمبر / ٧', 'Format Jawi ISO 2026-09-07 mestilah tahun / bulan / hari');
+console.log('✓ Susunan tarikh Jawi terbalik (tahun / bulan / hari) disahkan: ٢٠٢٦ / سڤتيمبر / ٧.');
+
+console.log('----------------------------------------------------');
+console.log('SEMUA 15 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');
+

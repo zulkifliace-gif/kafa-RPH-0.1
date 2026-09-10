@@ -613,7 +613,367 @@ export const AdminView: React.FC<Props> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
+
+            {/* Subheader: Maklumat Asas RPH */}
+            <div className="md:col-span-2 border-b border-slate-200 dark:border-slate-700 pb-2 pt-1">
+              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <FileText size={15} />
+                Format Tajuk Maklumat Asas (Header RPH)
+              </span>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Ubah suai nama label ruangan asas seperti Minggu, Hari, Kelas, Masa, Tarikh, Tahun, dan Mata Pelajaran untuk paparan borang guru dan cetakan PDF.
+              </p>
+            </div>
+
+            {/* Minggu Label */}
+            <div className="bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <span className="text-xs font-bold text-slate-800 dark:text-white block">
+                Label Bahagian Minggu:
+              </span>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Rumi:</label>
+                <input
+                  type="text"
+                  value={formConfig.labelCustom.minggu?.rumi ?? 'Minggu'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        minggu: {
+                          jawi: formConfig.labelCustom.minggu?.jawi || 'ميڠݢو',
+                          rumi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-medium"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Jawi:</label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={formConfig.labelCustom.minggu?.jawi ?? 'ميڠݢو'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        minggu: {
+                          rumi: formConfig.labelCustom.minggu?.rumi || 'Minggu',
+                          jawi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-sm font-jawi rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-bold"
+                />
+              </div>
+            </div>
+
+            {/* Hari Label */}
+            <div className="bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <span className="text-xs font-bold text-slate-800 dark:text-white block">
+                Label Bahagian Hari:
+              </span>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Rumi:</label>
+                <input
+                  type="text"
+                  value={formConfig.labelCustom.hari?.rumi ?? 'Hari'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        hari: {
+                          jawi: formConfig.labelCustom.hari?.jawi || 'هاري',
+                          rumi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-medium"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Jawi:</label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={formConfig.labelCustom.hari?.jawi ?? 'هاري'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        hari: {
+                          rumi: formConfig.labelCustom.hari?.rumi || 'Hari',
+                          jawi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-sm font-jawi rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-bold"
+                />
+              </div>
+            </div>
+
+            {/* Kelas Label */}
+            <div className="bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <span className="text-xs font-bold text-slate-800 dark:text-white block">
+                Label Bahagian Kelas:
+              </span>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Rumi:</label>
+                <input
+                  type="text"
+                  value={formConfig.labelCustom.kelas?.rumi ?? 'Kelas'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        kelas: {
+                          jawi: formConfig.labelCustom.kelas?.jawi || 'کلس',
+                          rumi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-medium"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Jawi:</label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={formConfig.labelCustom.kelas?.jawi ?? 'کلس'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        kelas: {
+                          rumi: formConfig.labelCustom.kelas?.rumi || 'Kelas',
+                          jawi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-sm font-jawi rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-bold"
+                />
+              </div>
+            </div>
+
+            {/* Masa Label */}
+            <div className="bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <span className="text-xs font-bold text-slate-800 dark:text-white block">
+                Label Bahagian Masa:
+              </span>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Rumi:</label>
+                <input
+                  type="text"
+                  value={formConfig.labelCustom.masa?.rumi ?? 'Masa'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        masa: {
+                          jawi: formConfig.labelCustom.masa?.jawi || 'ماس',
+                          rumi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-medium"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Jawi:</label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={formConfig.labelCustom.masa?.jawi ?? 'ماس'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        masa: {
+                          rumi: formConfig.labelCustom.masa?.rumi || 'Masa',
+                          jawi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-sm font-jawi rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-bold"
+                />
+              </div>
+            </div>
+
+            {/* Tarikh Label */}
+            <div className="bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <span className="text-xs font-bold text-slate-800 dark:text-white block">
+                Label Bahagian Tarikh:
+              </span>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Rumi:</label>
+                <input
+                  type="text"
+                  value={formConfig.labelCustom.tarikh?.rumi ?? 'Tarikh'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        tarikh: {
+                          jawi: formConfig.labelCustom.tarikh?.jawi || 'تاريخ',
+                          rumi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-medium"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Jawi:</label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={formConfig.labelCustom.tarikh?.jawi ?? 'تاريخ'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        tarikh: {
+                          rumi: formConfig.labelCustom.tarikh?.rumi || 'Tarikh',
+                          jawi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-sm font-jawi rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-bold"
+                />
+              </div>
+            </div>
+
+            {/* Tahun Label */}
+            <div className="bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <span className="text-xs font-bold text-slate-800 dark:text-white block">
+                Label Bahagian Tahun:
+              </span>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Rumi:</label>
+                <input
+                  type="text"
+                  value={formConfig.labelCustom.tahun?.rumi ?? 'Tahun'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        tahun: {
+                          jawi: formConfig.labelCustom.tahun?.jawi || 'تاهون',
+                          rumi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-medium"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-0.5">Versi Jawi:</label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={formConfig.labelCustom.tahun?.jawi ?? 'تاهون'}
+                  onChange={(e) =>
+                    setFormConfig({
+                      ...formConfig,
+                      labelCustom: {
+                        ...formConfig.labelCustom,
+                        tahun: {
+                          rumi: formConfig.labelCustom.tahun?.rumi || 'Tahun',
+                          jawi: e.target.value
+                        }
+                      }
+                    })
+                  }
+                  className="w-full px-3 py-1.5 text-sm font-jawi rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-bold"
+                />
+              </div>
+            </div>
+
+            {/* Mata Pelajaran Label */}
+            <div className="bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2 md:col-span-2">
+              <span className="text-xs font-bold text-slate-800 dark:text-white block">
+                Label Bahagian Mata Pelajaran:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-0.5">Versi Rumi:</label>
+                  <input
+                    type="text"
+                    value={formConfig.labelCustom.mataPelajaran?.rumi ?? 'Mata Pelajaran'}
+                    onChange={(e) =>
+                      setFormConfig({
+                        ...formConfig,
+                        labelCustom: {
+                          ...formConfig.labelCustom,
+                          mataPelajaran: {
+                            jawi: formConfig.labelCustom.mataPelajaran?.jawi || 'مات ڤالجرن',
+                            rumi: e.target.value
+                          }
+                        }
+                      })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-0.5">Versi Jawi:</label>
+                  <input
+                    type="text"
+                    dir="rtl"
+                    value={formConfig.labelCustom.mataPelajaran?.jawi ?? 'مات ڤالجرن'}
+                    onChange={(e) =>
+                      setFormConfig({
+                        ...formConfig,
+                        labelCustom: {
+                          ...formConfig.labelCustom,
+                          mataPelajaran: {
+                            rumi: formConfig.labelCustom.mataPelajaran?.rumi || 'Mata Pelajaran',
+                            jawi: e.target.value
+                          }
+                        }
+                      })
+                    }
+                    className="w-full px-3 py-1.5 text-sm font-jawi rounded-lg border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white font-bold"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Subheader: Kandungan & Pedagogi */}
+            <div className="md:col-span-2 border-b border-slate-200 dark:border-slate-700 pb-2 pt-2">
+              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <BookOpen size={15} />
+                Format Tajuk Kandungan Pembelajaran & Refleksi
+              </span>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Format teks label bagi tajuk kurikulum, kemahiran, objektif, aktiviti murid, refleksi, dan catatan tindakan susulan.
+              </p>
+            </div>
+
             {/* Objektif Label */}
             <div className="bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
               <span className="text-xs font-bold text-slate-800 dark:text-white block">
