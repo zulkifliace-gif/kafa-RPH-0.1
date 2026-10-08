@@ -252,7 +252,7 @@ export const TeacherView: React.FC<Props> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
         
         {/* LEFT COLUMN: Teacher Wizard Form */}
-        <div className={`lg:col-span-6 space-y-5 no-print ${mobileView === 'preview' ? 'hidden lg:block' : 'block'}`}>
+        <div className={`lg:col-span-6 space-y-5 no-print min-w-0 ${mobileView === 'preview' ? 'hidden lg:block' : 'block'}`}>
           <TeacherWizardForm
             config={config}
             form={form}

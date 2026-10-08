@@ -388,7 +388,7 @@ export const TeacherWizardForm: React.FC<Props> = ({
 
 
       {/* STEP CONTENT CONTAINER */}
-      <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-xs space-y-5">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-xs space-y-4 sm:space-y-5 min-w-0 overflow-hidden">
         
         {/* ==================================================== */}
         {/* STEP 1: WAKTU, TAHUN, KELAS & TARIKH                 */}
@@ -702,20 +702,22 @@ export const TeacherWizardForm: React.FC<Props> = ({
         {/* STEP 3: OBJEKTIF PEMBELAJARAN                        */}
         {/* ==================================================== */}
         {currentStep === 3 && (
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
-              <div>
+          <div className="space-y-4 animate-fade-in min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700 pb-3">
+              <div className="min-w-0 flex-1">
                 <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                  <Target size={16} className="text-emerald-600" />
-                  {getLabel('objektif')}
+                  <Target size={16} className="text-emerald-600 shrink-0" />
+                  <span className="truncate">{getLabel('objektif')}</span>
                 </h4>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Tandakan objektif pengajaran yang ingin dicapai bagi tajuk ini.
+                  {isJawi ? 'تنداکن اوبجيکتيف ڤڠاجرن باݢي تاجوق اين.' : 'Tandakan objektif pengajaran yang ingin dicapai bagi tajuk ini.'}
                 </p>
               </div>
-              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1 rounded-xl border border-emerald-200 dark:border-emerald-800">
-                {form.selectedObjektif.length} Ditandakan
-              </span>
+              <div className="self-start sm:self-center shrink-0">
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1 rounded-xl border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
+                  {form.selectedObjektif.length} Ditandakan
+                </span>
+              </div>
             </div>
 
             {/* List of Objectives */}
@@ -736,7 +738,7 @@ export const TeacherWizardForm: React.FC<Props> = ({
                       key={idx}
                       type="button"
                       onClick={() => handleToggleObjektif(obj)}
-                      className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer ${
+                      className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border transition-all flex items-start gap-2.5 sm:gap-3 cursor-pointer ${
                         isSelected
                           ? 'border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 shadow-xs'
                           : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200'
@@ -751,7 +753,7 @@ export const TeacherWizardForm: React.FC<Props> = ({
                       >
                         {isSelected && <Check size={14} strokeWidth={3} />}
                       </div>
-                      <span className="text-xs font-medium leading-relaxed">{obj}</span>
+                      <span className="text-xs font-medium leading-relaxed break-words flex-1 min-w-0">{obj}</span>
                     </button>
                   );
                 })
@@ -769,9 +771,9 @@ export const TeacherWizardForm: React.FC<Props> = ({
                   .map((customObj, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/40 flex items-center justify-between text-xs"
+                      className="p-2.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/40 flex items-start justify-between gap-2 text-xs"
                     >
-                      <span className={`font-medium text-emerald-950 dark:text-emerald-100 ${isJawi ? 'font-jawi text-sm' : ''}`} dir={isJawi ? 'rtl' : 'auto'}>
+                      <span className={`font-medium text-emerald-950 dark:text-emerald-100 break-words flex-1 min-w-0 ${isJawi ? 'font-jawi text-sm' : ''}`} dir={isJawi ? 'rtl' : 'auto'}>
                         {customObj}
                       </span>
                       <button
@@ -789,28 +791,28 @@ export const TeacherWizardForm: React.FC<Props> = ({
 
             {/* Custom Objective input */}
             <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <input
                   type="text"
                   placeholder={
                     isJawi
-                      ? '+ تاءيڤ اوبجيکتيف ڤمبلاجرن دمينتا...'
-                      : '+ Taip objektif tambahan jika tiada dalam senarai...'
+                      ? '+ تاءيڤ اوبجيکتيف ڤمبلاجرن...'
+                      : '+ Taip objektif tambahan...'
                   }
                   value={customObjektifInput}
                   onChange={(e) => setCustomObjektifInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomObjektif())}
                   dir={isJawi ? 'rtl' : 'auto'}
-                  className={`flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white ${
+                  className={`min-w-0 flex-1 px-3 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 ${
                     isJawi ? 'font-jawi text-sm' : ''
                   }`}
                 />
                 <button
                   type="button"
                   onClick={handleAddCustomObjektif}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 flex items-center gap-1 cursor-pointer shrink-0"
+                  className="shrink-0 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer whitespace-nowrap"
                 >
-                  <Plus size={14} />
+                  <Plus size={15} />
                   <span>{isJawi ? 'تمبه' : 'Tambah'}</span>
                 </button>
               </div>
@@ -822,28 +824,30 @@ export const TeacherWizardForm: React.FC<Props> = ({
         {/* STEP 4: AKTIVITI MURID (MURID DIMINTA)               */}
         {/* ==================================================== */}
         {currentStep === 4 && (
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
-              <div>
+          <div className="space-y-4 animate-fade-in min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700 pb-3">
+              <div className="min-w-0 flex-1">
                 <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                  <Lightbulb size={16} className="text-amber-500" />
-                  {getLabel('aktiviti')}
+                  <Lightbulb size={16} className="text-amber-500 shrink-0" />
+                  <span className="truncate">{getLabel('aktiviti')}</span>
                 </h4>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {isJawi ? 'سيلـا تـاءيڤ اکـتيۏيتي ڤمبلاجرن موريد دباوه.' : 'Sila taip aktiviti pembelajaran murid di bawah.'}
                 </p>
               </div>
-              <span className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950 px-2.5 py-1 rounded-xl border border-teal-200 dark:border-teal-800">
-                {form.selectedAktiviti.length} Ditambah
-              </span>
+              <div className="self-start sm:self-center shrink-0">
+                <span className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950 px-2.5 py-1 rounded-xl border border-teal-200 dark:border-teal-800 whitespace-nowrap">
+                  {form.selectedAktiviti.length} Ditambah
+                </span>
+              </div>
             </div>
 
             {/* List of Typed Activities */}
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {form.selectedAktiviti.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center gap-2">
+                <div className="p-5 sm:p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center gap-2">
                   <Lightbulb size={24} className="text-slate-300 dark:text-slate-600" />
-                  <span>
+                  <span className="leading-relaxed">
                     {isJawi
                       ? 'بلوم اد اکتيۏيتي دتمبه. سيلا تاءيڤ اکتيۏيتي موريد دباوه دان تكن بوتڠ تمبه.'
                       : 'Belum ada aktiviti ditambah. Sila taip aktiviti murid di bawah dan klik butang Tambah.'}
@@ -853,14 +857,14 @@ export const TeacherWizardForm: React.FC<Props> = ({
                 form.selectedAktiviti.map((akt, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl border border-teal-200 dark:border-teal-800/80 bg-teal-50/60 dark:bg-teal-950/30 flex items-start justify-between gap-3 shadow-2xs group"
+                    className="p-3 sm:p-3.5 rounded-2xl border border-teal-200 dark:border-teal-800/80 bg-teal-50/60 dark:bg-teal-950/30 flex items-start justify-between gap-2.5 shadow-2xs group"
                   >
-                    <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
                       <span className="w-5 h-5 rounded-full bg-teal-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                         {idx + 1}
                       </span>
                       <span
-                        className={`text-xs font-medium text-slate-800 dark:text-slate-200 leading-relaxed break-words flex-1 ${
+                        className={`text-xs font-medium text-slate-800 dark:text-slate-200 leading-relaxed break-words flex-1 min-w-0 ${
                           isJawi ? 'font-jawi text-sm' : ''
                         }`}
                         dir={isJawi ? 'rtl' : 'auto'}
@@ -883,26 +887,26 @@ export const TeacherWizardForm: React.FC<Props> = ({
 
             {/* Custom Activity input */}
             <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-700">
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <input
                   type="text"
                   placeholder={
                     isJawi
-                      ? '+ تاءيڤ اکتيۏيتي موريد دمينتا (چونتوه: موريد ممباچ کليمه برسام ݢورو)...'
+                      ? '+ تاءيڤ اکتيۏيتي موريد...'
                       : '+ Taip aktiviti murid diminta...'
                   }
                   value={customAktivitiInput}
                   onChange={(e) => setCustomAktivitiInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomAktiviti())}
                   dir={isJawi ? 'rtl' : 'auto'}
-                  className={`flex-1 px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-teal-500 font-medium ${
+                  className={`min-w-0 flex-1 px-3 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-teal-500 font-medium ${
                     isJawi ? 'font-jawi text-sm' : ''
                   }`}
                 />
                 <button
                   type="button"
                   onClick={handleAddCustomAktiviti}
-                  className="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer shrink-0"
+                  className="shrink-0 px-3.5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer whitespace-nowrap"
                 >
                   <Plus size={15} />
                   <span>{isJawi ? 'تمبه' : 'Tambah'}</span>
@@ -1253,13 +1257,13 @@ export const TeacherWizardForm: React.FC<Props> = ({
             type="button"
             onClick={goPrev}
             disabled={currentStep === 1}
-            className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1 sm:gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
           >
             <ChevronLeft size={16} />
             <span>Sebelumnya</span>
           </button>
 
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 px-2 text-center shrink-0">
             {currentStep}/6
           </span>
 
@@ -1267,7 +1271,7 @@ export const TeacherWizardForm: React.FC<Props> = ({
             <button
               type="button"
               onClick={goNext}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 sm:gap-1.5 shadow-sm transition-all cursor-pointer shrink-0"
             >
               <span>Seterusnya</span>
               <ChevronRight size={16} />
