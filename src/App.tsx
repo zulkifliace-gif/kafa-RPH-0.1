@@ -11,6 +11,7 @@ import {
 import { Navbar } from './components/Navbar';
 import { TeacherView } from './components/TeacherView';
 import { AdminView } from './components/AdminView';
+import { AlertTriangle, Save, X } from 'lucide-react';
 
 const SCRIPT_STORAGE_KEY = 'rph_kafa_v3_script_mode';
 const THEME_STORAGE_KEY = 'rph_kafa_v3_theme';
@@ -18,6 +19,11 @@ const THEME_STORAGE_KEY = 'rph_kafa_v3_theme';
 export const App: React.FC = () => {
   // Admin school configuration & bank
   const [adminConfig, setAdminConfig] = useState<AdminSchoolConfig>(() => loadAdminConfig());
+
+  // Track admin unsaved changes
+  const [adminIsDirty, setAdminIsDirty] = useState<boolean>(false);
+  const [pendingAdminConfig, setPendingAdminConfig] = useState<AdminSchoolConfig | null>(null);
+  const [showUnsavedModal, setShowUnsavedModal] = useState<boolean>(false);
 
   // Teacher daily form data
   const [teacherForm, setTeacherForm] = useState<TeacherDailyForm>(() => loadTeacherForm());
@@ -57,15 +63,25 @@ export const App: React.FC = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
+      if (hash === 'guru' && adminIsDirty) {
+        // Intercept hash navigation if admin has unsaved changes
+        setShowUnsavedModal(true);
+        window.location.hash = 'admin';
+        return;
+      }
       if (hash === 'admin' || hash === 'guru') {
         setCurrentPage(hash);
       }
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [adminIsDirty]);
 
   const navigateTo = (page: AppPage) => {
+    if (currentPage === 'admin' && page === 'guru' && adminIsDirty) {
+      setShowUnsavedModal(true);
+      return;
+    }
     setCurrentPage(page);
     window.location.hash = page;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -147,13 +163,90 @@ export const App: React.FC = () => {
         {currentPage === 'admin' && (
           <AdminView
             config={adminConfig}
-            onSaveConfig={handleSaveAdminConfig}
+            onSaveConfig={(newCfg) => {
+              handleSaveAdminConfig(newCfg);
+              setAdminIsDirty(false);
+              setPendingAdminConfig(null);
+            }}
             onResetToDefault={handleResetAdminConfig}
             onGoToTeacherView={() => navigateTo('guru')}
             skrip={skrip}
+            onDirtyChange={(dirty, currentCfg) => {
+              setAdminIsDirty(dirty);
+              setPendingAdminConfig(currentCfg);
+            }}
           />
         )}
       </main>
+
+      {/* Pop-up Amaran Belum Simpan Bila Pergi Ke Halaman Guru */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4 animate-scale-up">
+            <div className="flex items-center gap-3 text-amber-500">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-2xl shrink-0">
+                <AlertTriangle size={28} />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                  Perubahan Belum Disimpan
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Panel Pentadbir / Admin Sekolah
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Anda sedang membuat perubahan pada tetapan atau bank data yang <strong>belum disimpan</strong>. Adakah anda ingin menyimpan perubahan ini sekarang sebelum beralih ke Halaman Guru?
+            </p>
+
+            <div className="pt-2 space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (pendingAdminConfig) {
+                    handleSaveAdminConfig(pendingAdminConfig);
+                  }
+                  setAdminIsDirty(false);
+                  setShowUnsavedModal(false);
+                  setCurrentPage('guru');
+                  window.location.hash = 'guru';
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+              >
+                <Save size={16} />
+                <span>Simpan Perubahan & Teruskan</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminIsDirty(false);
+                  setPendingAdminConfig(null);
+                  setShowUnsavedModal(false);
+                  setCurrentPage('guru');
+                  window.location.hash = 'guru';
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200 dark:border-rose-800"
+              >
+                <X size={16} />
+                <span>Jangan Simpan (Abaikan Perubahan)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowUnsavedModal(false)}
+                className="w-full py-2 px-4 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white font-medium text-xs text-center transition-colors cursor-pointer"
+              >
+                Batal (Kekal di Panel Admin)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-4 text-center text-xs text-slate-500 dark:text-slate-400 no-print mt-auto">

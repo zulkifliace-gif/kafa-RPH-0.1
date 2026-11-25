@@ -96,27 +96,31 @@ export const TeacherView: React.FC<Props> = ({
   const totalStudents = menguasaiNum + tidakMenguasaiNum;
   const isRatioExceeded = jumlahNum > 0 && totalStudents > jumlahNum;
 
-  // Validation before PDF
-  const isAlQuran = form.mataPelajaran === 'Al-Quran';
-  const hasKemahiran =
-    form.selectedKemahiran.lisan ||
-    form.selectedKemahiran.bertulis ||
-    form.selectedKemahiran.pemerhatian;
-
+  // Validation before PDF (checks all slots)
+  const slotsToValidate = form.slots && form.slots.length > 0 ? form.slots : [form];
   const isValidForPdf = Boolean(
     form.tarikh &&
     form.hari &&
-    form.tahun &&
-    form.kelas &&
-    form.masa &&
-    form.mataPelajaran &&
-    (!isAlQuran || form.bidang) &&
-    form.tajuk.teks &&
-    form.selectedObjektif.length > 0 &&
-    form.selectedAktiviti.length > 0 &&
-    hasKemahiran &&
-    form.refleksi.muridMenguasai !== '' &&
-    !isRatioExceeded
+    !isRatioExceeded &&
+    slotsToValidate.every((s) => {
+      const isAq = s.mataPelajaran === 'Al-Quran';
+      const sObj = (s as any).selectedObjektif || (s as any).objektifPembelajaran || [];
+      const sAkt = (s as any).selectedAktiviti || (s as any).aktivitiMurid || [];
+      const sKem = (s as any).selectedKemahiran || (s as any).kemahiran || {};
+      const hasKem = sKem.lisan || sKem.bertulis || sKem.pemerhatian;
+      return (
+        s.tahun &&
+        s.kelas &&
+        s.masa &&
+        s.mataPelajaran &&
+        (!isAq || s.bidang) &&
+        s.tajuk?.teks &&
+        sObj.length > 0 &&
+        sAkt.length > 0 &&
+        hasKem &&
+        s.refleksi?.muridMenguasai !== ''
+      );
+    })
   );
 
   const handleDownloadPdf = async () => {
@@ -144,7 +148,9 @@ export const TeacherView: React.FC<Props> = ({
         pemerhatian: Boolean(form.selectedKemahiran.pemerhatian)
       },
       refleksi: form.refleksi,
-      skrip: skrip
+      customValues: form.customValues,
+      skrip: skrip,
+      slots: form.slots && form.slots.length > 0 ? form.slots : undefined
     };
 
     setIsGeneratingPdf(true);
@@ -319,7 +325,7 @@ export const TeacherView: React.FC<Props> = ({
                       : 'text-slate-600 dark:text-slate-300'
                   }`}
                 >
-                  Susunan Admin
+                  Susunan Khas (Canva)
                 </button>
               </div>
 
@@ -371,7 +377,8 @@ export const TeacherView: React.FC<Props> = ({
                   },
                   refleksi: form.refleksi,
                   customValues: form.customValues,
-                  skrip: skrip
+                  skrip: skrip,
+                  slots: form.slots && form.slots.length > 0 ? form.slots : undefined
                 }}
                 namaSekolah={config.namaSekolah}
                 logoSekolah={config.logoSekolah}

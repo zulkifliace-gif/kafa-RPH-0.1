@@ -145,6 +145,38 @@ export interface CustomPdfLayoutConfig {
   customSections: CustomSectionDef[];
 }
 
+export interface RphClassSlot {
+  id: string;
+  tahun: string;
+  kelas: string;
+  masa: string;
+  mataPelajaran: string;
+  bidang: string | null;
+  tajuk: {
+    kod: string;
+    teks: string;
+  };
+  subtajuk: {
+    kod: string;
+    teks: string;
+  };
+  selectedObjektif: string[];
+  selectedAktiviti: string[];
+  selectedKemahiran: {
+    lisan: boolean;
+    bertulis: boolean;
+    pemerhatian: boolean;
+    [key: string]: boolean;
+  };
+  refleksi: {
+    muridMenguasai: string;
+    muridTidakMenguasai: string;
+    jumlahMurid: string;
+    catatan: string;
+  };
+  customValues?: Record<string, any>;
+}
+
 export interface TeacherDailyForm {
   tarikh: string;
   hari: string;
@@ -178,6 +210,8 @@ export interface TeacherDailyForm {
   };
   customValues?: Record<string, any>;
   skrip: ScriptMode;
+  slots?: RphClassSlot[];
+  activeSlotIndex?: number;
 }
 
 export interface RphData {
@@ -213,4 +247,5 @@ export interface RphData {
   };
   customValues?: Record<string, any>;
   skrip: ScriptMode;
+  slots?: RphClassSlot[];
 }

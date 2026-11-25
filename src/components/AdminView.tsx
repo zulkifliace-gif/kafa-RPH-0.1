@@ -37,6 +37,7 @@ interface Props {
   onResetToDefault: () => void;
   onGoToTeacherView: () => void;
   skrip?: ScriptMode;
+  onDirtyChange?: (isDirty: boolean, currentFormConfig: AdminSchoolConfig) => void;
 }
 
 export const AdminView: React.FC<Props> = ({
@@ -44,7 +45,8 @@ export const AdminView: React.FC<Props> = ({
   onSaveConfig,
   onResetToDefault,
   onGoToTeacherView,
-  skrip
+  skrip,
+  onDirtyChange
 }) => {
   // PIN authentication state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -53,6 +55,16 @@ export const AdminView: React.FC<Props> = ({
 
   // Editable config state
   const [formConfig, setFormConfig] = useState<AdminSchoolConfig>(config);
+
+  // Notify parent of dirty status
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      onDirtyChange?.(false, formConfig);
+      return;
+    }
+    const isDirty = JSON.stringify(formConfig) !== JSON.stringify(config);
+    onDirtyChange?.(isDirty, formConfig);
+  }, [formConfig, config, isAuthenticated, onDirtyChange]);
   const [activeTab, setActiveTab] = useState<'profil' | 'format' | 'bank' | 'grid'>('profil');
   const [bankSubTab, setBankSubTab] = useState<'asas' | 'tajuk' | 'objektif' | 'aktiviti' | 'refleksi' | 'kustom'>('asas');
   const [newCustomOptionInput, setNewCustomOptionInput] = useState<{ [secId: string]: string }>({});

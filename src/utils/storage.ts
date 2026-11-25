@@ -67,13 +67,39 @@ export function loadTeacherForm(): TeacherDailyForm {
     const raw = localStorage.getItem(STORAGE_KEY_TEACHER);
     if (raw) {
       const parsed = JSON.parse(raw);
+      const activeIdx = typeof parsed.activeSlotIndex === 'number' ? parsed.activeSlotIndex : 0;
+      
+      // Ensure slots array is populated
+      let slots = parsed.slots;
+      if (!Array.isArray(slots) || slots.length === 0) {
+        slots = [
+          {
+            id: 'slot-1',
+            tahun: parsed.tahun || DEFAULT_TEACHER_FORM.tahun,
+            kelas: parsed.kelas || DEFAULT_TEACHER_FORM.kelas,
+            masa: parsed.masa || DEFAULT_TEACHER_FORM.masa,
+            mataPelajaran: parsed.mataPelajaran || DEFAULT_TEACHER_FORM.mataPelajaran,
+            bidang: parsed.bidang !== undefined ? parsed.bidang : DEFAULT_TEACHER_FORM.bidang,
+            tajuk: { ...DEFAULT_TEACHER_FORM.tajuk, ...(parsed.tajuk || {}) },
+            subtajuk: { ...DEFAULT_TEACHER_FORM.subtajuk, ...(parsed.subtajuk || {}) },
+            selectedObjektif: Array.isArray(parsed.selectedObjektif) ? parsed.selectedObjektif : DEFAULT_TEACHER_FORM.selectedObjektif,
+            selectedAktiviti: Array.isArray(parsed.selectedAktiviti) ? parsed.selectedAktiviti : DEFAULT_TEACHER_FORM.selectedAktiviti,
+            selectedKemahiran: { ...DEFAULT_TEACHER_FORM.selectedKemahiran, ...(parsed.selectedKemahiran || {}) },
+            refleksi: { ...DEFAULT_TEACHER_FORM.refleksi, ...(parsed.refleksi || {}) },
+            customValues: parsed.customValues || {}
+          }
+        ];
+      }
+
       return {
         ...DEFAULT_TEACHER_FORM,
         ...parsed,
         tajuk: { ...DEFAULT_TEACHER_FORM.tajuk, ...(parsed.tajuk || {}) },
         subtajuk: { ...DEFAULT_TEACHER_FORM.subtajuk, ...(parsed.subtajuk || {}) },
         selectedKemahiran: { ...DEFAULT_TEACHER_FORM.selectedKemahiran, ...(parsed.selectedKemahiran || {}) },
-        refleksi: { ...DEFAULT_TEACHER_FORM.refleksi, ...(parsed.refleksi || {}) }
+        refleksi: { ...DEFAULT_TEACHER_FORM.refleksi, ...(parsed.refleksi || {}) },
+        slots,
+        activeSlotIndex: Math.min(Math.max(activeIdx, 0), slots.length - 1)
       };
     }
   } catch (err) {

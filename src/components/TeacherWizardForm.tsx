@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AdminSchoolConfig, TeacherDailyForm, ScriptMode } from '../types/rph';
+import { AdminSchoolConfig, TeacherDailyForm, ScriptMode, RphClassSlot } from '../types/rph';
 import { HARI_OPTIONS } from '../config/options';
 import { getDayFromDate, getWeekNumber, formatMalayDate } from '../utils/jawiHelper';
 import {
@@ -17,7 +17,9 @@ import {
   Plus,
   Compass,
   CheckCircle2,
-  Trash2
+  Trash2,
+  Copy,
+  School
 } from 'lucide-react';
 
 interface Props {
@@ -42,7 +44,7 @@ interface StepMeta {
 export const TeacherWizardForm: React.FC<Props> = ({
   config,
   form,
-  onUpdateForm,
+  onUpdateForm: parentUpdateForm,
   skrip,
   onGeneratePdf,
   isGeneratingPdf,
@@ -54,6 +56,182 @@ export const TeacherWizardForm: React.FC<Props> = ({
 
   const isJawi = skrip === 'jawi';
   const customLabels = config.labelCustom;
+
+  // Slots state initialization & safety
+  const rawSlots: RphClassSlot[] = form.slots && form.slots.length > 0 ? form.slots : [
+    {
+      id: 'slot-1',
+      tahun: form.tahun,
+      kelas: form.kelas,
+      masa: form.masa,
+      mataPelajaran: form.mataPelajaran,
+      bidang: form.bidang,
+      tajuk: form.tajuk,
+      subtajuk: form.subtajuk,
+      selectedObjektif: form.selectedObjektif,
+      selectedAktiviti: form.selectedAktiviti,
+      selectedKemahiran: form.selectedKemahiran,
+      refleksi: form.refleksi,
+      customValues: form.customValues
+    }
+  ];
+
+  const slots = rawSlots;
+  const activeSlotIndex = typeof form.activeSlotIndex === 'number' && form.activeSlotIndex < slots.length
+    ? form.activeSlotIndex
+    : 0;
+
+  // Intercept all onUpdateForm calls so slot-specific fields always update active slot
+  const onUpdateForm = (updates: Partial<TeacherDailyForm>) => {
+    if (updates.slots || updates.activeSlotIndex !== undefined) {
+      parentUpdateForm(updates);
+      return;
+    }
+
+    const currentSlots = [...slots];
+    const safeIdx = Math.min(Math.max(activeSlotIndex, 0), currentSlots.length - 1);
+    const activeSlot = { ...currentSlots[safeIdx] };
+    let isSlotField = false;
+
+    if (updates.tahun !== undefined) { activeSlot.tahun = updates.tahun; isSlotField = true; }
+    if (updates.kelas !== undefined) { activeSlot.kelas = updates.kelas; isSlotField = true; }
+    if (updates.masa !== undefined) { activeSlot.masa = updates.masa; isSlotField = true; }
+    if (updates.mataPelajaran !== undefined) { activeSlot.mataPelajaran = updates.mataPelajaran; isSlotField = true; }
+    if (updates.bidang !== undefined) { activeSlot.bidang = updates.bidang; isSlotField = true; }
+    if (updates.tajuk !== undefined) { activeSlot.tajuk = updates.tajuk; isSlotField = true; }
+    if (updates.subtajuk !== undefined) { activeSlot.subtajuk = updates.subtajuk; isSlotField = true; }
+    if (updates.selectedObjektif !== undefined) { activeSlot.selectedObjektif = updates.selectedObjektif; isSlotField = true; }
+    if (updates.selectedAktiviti !== undefined) { activeSlot.selectedAktiviti = updates.selectedAktiviti; isSlotField = true; }
+    if (updates.selectedKemahiran !== undefined) { activeSlot.selectedKemahiran = updates.selectedKemahiran; isSlotField = true; }
+    if (updates.refleksi !== undefined) { activeSlot.refleksi = updates.refleksi; isSlotField = true; }
+    if (updates.customValues !== undefined) { activeSlot.customValues = updates.customValues; isSlotField = true; }
+
+    if (isSlotField) {
+      currentSlots[safeIdx] = activeSlot;
+      parentUpdateForm({
+        ...updates,
+        slots: currentSlots,
+        activeSlotIndex: safeIdx
+      });
+    } else {
+      parentUpdateForm(updates);
+    }
+  };
+
+  const handleSelectSlot = (newIdx: number) => {
+    if (newIdx < 0 || newIdx >= slots.length) return;
+    const targetSlot = slots[newIdx];
+    parentUpdateForm({
+      activeSlotIndex: newIdx,
+      tahun: targetSlot.tahun,
+      kelas: targetSlot.kelas,
+      masa: targetSlot.masa,
+      mataPelajaran: targetSlot.mataPelajaran,
+      bidang: targetSlot.bidang,
+      tajuk: targetSlot.tajuk,
+      subtajuk: targetSlot.subtajuk,
+      selectedObjektif: targetSlot.selectedObjektif,
+      selectedAktiviti: targetSlot.selectedAktiviti,
+      selectedKemahiran: targetSlot.selectedKemahiran,
+      refleksi: targetSlot.refleksi,
+      customValues: targetSlot.customValues
+    });
+  };
+
+  const handleAddSlot = () => {
+    const newSlotId = `slot-${Date.now()}`;
+    const newSlot: RphClassSlot = {
+      id: newSlotId,
+      tahun: config.bank.tahun[0] || '1',
+      kelas: config.bank.kelas[0] || '',
+      masa: config.bank.masa[1] || config.bank.masa[0] || '',
+      mataPelajaran: config.bank.mataPelajaran[0] || 'Al-Quran',
+      bidang: config.bank.bidangAlQuran[0] || 'Tilawah',
+      tajuk: { kod: '', teks: '' },
+      subtajuk: { kod: '', teks: '' },
+      selectedObjektif: [],
+      selectedAktiviti: [],
+      selectedKemahiran: {
+        lisan: true,
+        bertulis: false,
+        pemerhatian: false
+      },
+      refleksi: {
+        muridMenguasai: '0',
+        muridTidakMenguasai: '0',
+        jumlahMurid: '10',
+        catatan: ''
+      }
+    };
+    const newSlots = [...slots, newSlot];
+    const newIdx = newSlots.length - 1;
+    parentUpdateForm({
+      slots: newSlots,
+      activeSlotIndex: newIdx,
+      tahun: newSlot.tahun,
+      kelas: newSlot.kelas,
+      masa: newSlot.masa,
+      mataPelajaran: newSlot.mataPelajaran,
+      bidang: newSlot.bidang,
+      tajuk: newSlot.tajuk,
+      subtajuk: newSlot.subtajuk,
+      selectedObjektif: newSlot.selectedObjektif,
+      selectedAktiviti: newSlot.selectedAktiviti,
+      selectedKemahiran: newSlot.selectedKemahiran,
+      refleksi: newSlot.refleksi
+    });
+    setCurrentStep(1);
+  };
+
+  const handleDuplicateSlot = () => {
+    const current = slots[activeSlotIndex];
+    const newSlot: RphClassSlot = {
+      ...JSON.parse(JSON.stringify(current)),
+      id: `slot-${Date.now()}`
+    };
+    const newSlots = [...slots, newSlot];
+    const newIdx = newSlots.length - 1;
+    parentUpdateForm({
+      slots: newSlots,
+      activeSlotIndex: newIdx,
+      tahun: newSlot.tahun,
+      kelas: newSlot.kelas,
+      masa: newSlot.masa,
+      mataPelajaran: newSlot.mataPelajaran,
+      bidang: newSlot.bidang,
+      tajuk: newSlot.tajuk,
+      subtajuk: newSlot.subtajuk,
+      selectedObjektif: newSlot.selectedObjektif,
+      selectedAktiviti: newSlot.selectedAktiviti,
+      selectedKemahiran: newSlot.selectedKemahiran,
+      refleksi: newSlot.refleksi
+    });
+    setCurrentStep(1);
+  };
+
+  const handleDeleteSlot = (idxToDelete: number) => {
+    if (slots.length <= 1) return;
+    if (window.confirm(`Adakah anda pasti mahu memadam RPH Kelas ${idxToDelete + 1}?`)) {
+      const newSlots = slots.filter((_, idx) => idx !== idxToDelete);
+      const newIdx = Math.max(0, activeSlotIndex >= newSlots.length ? newSlots.length - 1 : activeSlotIndex);
+      const targetSlot = newSlots[newIdx];
+      parentUpdateForm({
+        slots: newSlots,
+        activeSlotIndex: newIdx,
+        tahun: targetSlot.tahun,
+        kelas: targetSlot.kelas,
+        masa: targetSlot.masa,
+        mataPelajaran: targetSlot.mataPelajaran,
+        bidang: targetSlot.bidang,
+        tajuk: targetSlot.tajuk,
+        subtajuk: targetSlot.subtajuk,
+        selectedObjektif: targetSlot.selectedObjektif,
+        selectedAktiviti: targetSlot.selectedAktiviti,
+        selectedKemahiran: targetSlot.selectedKemahiran,
+        refleksi: targetSlot.refleksi
+      });
+    }
+  };
 
   const getLabel = (key: keyof typeof customLabels) => {
     return isJawi ? customLabels[key]?.jawi || '' : customLabels[key]?.rumi || '';
@@ -325,6 +503,110 @@ export const TeacherWizardForm: React.FC<Props> = ({
 
   return (
     <div className="space-y-5">
+      {/* ==================================================== */}
+      {/* BAR PENGURUSAN SLOT KELAS HARIAN (MULTI-RPH DALAM 1 A4) */}
+      {/* ==================================================== */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 dark:border-slate-700 pb-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-sm shrink-0">
+              <School size={18} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                  {isJawi ? 'سناراي کلس هارين' : 'RPH Kelas Hari Ini'}
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-black shrink-0">
+                  {slots.length} Kelas
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 truncate">
+                {isJawi
+                  ? 'سموا کلس دباوه اکن دچيتق برسام دالم 1 کمبر A4.'
+                  : 'Semua kelas di bawah dicetak bersama dalam 1 lembaran A4 yang sama.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 self-start sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={handleDuplicateSlot}
+              title="Salin maklumat kelas ini ke kelas baharu"
+              className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+            >
+              <Copy size={13} />
+              <span>{isJawi ? 'سالين کلس' : 'Salin Kelas'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleAddSlot}
+              title="Tambah kelas lain untuk hari ini"
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs transition-all cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>{isJawi ? '+ تمبه کلس' : '+ Tambah Kelas'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Slot Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+          {slots.map((slot, idx) => {
+            const isActive = idx === activeSlotIndex;
+            return (
+              <div
+                key={slot.id || idx}
+                className={`flex items-center rounded-xl border transition-all shrink-0 ${
+                  isActive
+                    ? 'border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/50 shadow-xs ring-1 ring-emerald-500'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => handleSelectSlot(idx)}
+                  className="px-3 py-2 text-left flex items-center gap-2 cursor-pointer"
+                >
+                  <span
+                    className={`w-5 h-5 rounded-lg text-[11px] font-black flex items-center justify-center shrink-0 ${
+                      isActive
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    {idx + 1}
+                  </span>
+                  <div className="text-xs">
+                    <div className={`font-bold ${isActive ? 'text-emerald-950 dark:text-emerald-200' : 'text-slate-800 dark:text-slate-200'}`}>
+                      {slot.kelas ? `Tahun ${slot.tahun || ''} ${slot.kelas}` : `Kelas ${idx + 1}`}
+                    </div>
+                    <div className="text-[10px] text-slate-500 truncate max-w-[130px]">
+                      {slot.mataPelajaran || 'Belum pilih'} • {slot.masa || '-'}
+                    </div>
+                  </div>
+                </button>
+
+                {slots.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSlot(idx);
+                    }}
+                    title={`Padam Kelas ${idx + 1}`}
+                    className="p-1.5 mr-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* STEP PROGRESS STEPPER */}
       <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-slate-200 dark:border-slate-700 shadow-xs">
         <div className="flex items-center justify-between mb-3 px-1">
@@ -790,8 +1072,8 @@ export const TeacherWizardForm: React.FC<Props> = ({
             )}
 
             {/* Custom Objective input */}
-            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-              <div className="flex gap-2 items-center">
+            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700 w-full min-w-0">
+              <div className="flex gap-2 items-center w-full min-w-0">
                 <input
                   type="text"
                   placeholder={
@@ -803,7 +1085,7 @@ export const TeacherWizardForm: React.FC<Props> = ({
                   onChange={(e) => setCustomObjektifInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomObjektif())}
                   dir={isJawi ? 'rtl' : 'auto'}
-                  className={`min-w-0 flex-1 px-3 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 ${
+                  className={`w-0 flex-1 min-w-0 px-3 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-emerald-500 font-medium ${
                     isJawi ? 'font-jawi text-sm' : ''
                   }`}
                 />
@@ -886,8 +1168,8 @@ export const TeacherWizardForm: React.FC<Props> = ({
             </div>
 
             {/* Custom Activity input */}
-            <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-700">
-              <div className="flex gap-2 items-center">
+            <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-700 w-full min-w-0">
+              <div className="flex gap-2 items-center w-full min-w-0">
                 <input
                   type="text"
                   placeholder={
@@ -899,7 +1181,7 @@ export const TeacherWizardForm: React.FC<Props> = ({
                   onChange={(e) => setCustomAktivitiInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomAktiviti())}
                   dir={isJawi ? 'rtl' : 'auto'}
-                  className={`min-w-0 flex-1 px-3 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-teal-500 font-medium ${
+                  className={`w-0 flex-1 min-w-0 px-3 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white text-slate-900 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-teal-500 font-medium ${
                     isJawi ? 'font-jawi text-sm' : ''
                   }`}
                 />
@@ -1212,10 +1494,33 @@ export const TeacherWizardForm: React.FC<Props> = ({
               />
             </div>
 
+            {/* Kad Tambah Kelas Seterusnya (1 A4 Lebih 1 RPH) */}
+            <div className="bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl p-4 border border-emerald-200 dark:border-emerald-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <h5 className="font-bold text-xs text-emerald-950 dark:text-emerald-200 flex items-center gap-1.5">
+                  <School size={16} className="text-emerald-600 shrink-0" />
+                  <span>{isJawi ? 'اداکه چيݢو اد کلس لاءين هاري اين؟' : 'Adakah cikgu ada kelas lain pada hari ini?'}</span>
+                </h5>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                  {isJawi
+                    ? 'چيݢو بوليه تمبه کلس ستروسڽ. سموا RPH اکن دمواتکن کماس دالم 1 لمبارن A4.'
+                    : 'Cikgu boleh isi RPH untuk kelas seterusnya. Semua RPH akan dicantum kemas dalam 1 kertas A4.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAddSlot}
+                className="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>{isJawi ? '+ تمبه کلس ستروسڽ' : '+ Tambah Kelas Seterusnya'}</span>
+              </button>
+            </div>
+
             {/* Action Buttons inside Wizard final step */}
             <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-3">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-900 dark:text-emerald-200">
-                <CheckCircle2 size={16} className="text-emerald-600" />
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                 <span>RPH anda telah lengkap diisi! Sedia untuk dijana atau dicetak:</span>
               </div>
 

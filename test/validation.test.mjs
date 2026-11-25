@@ -313,14 +313,13 @@ console.log(`✓ ${totalSubtajuks} Subtajuk & ${totalObjektifs} Objektif pembela
 console.log('----------------------------------------------------');
 console.log('SEMUA 7 SEKSYEN UJIAN LULUS DENGAN CEMERLANG! ✓✓✓');
 
-// 8. Test 2 Entry Modes (Standard & Wizard / Conversational Form)
-console.log('\n8. Menguji 2 Mod Pengisian Borang RPH Guru (Standard vs Wizard):');
+// 8. Menguji Mod Pengisian Borang RPH Guru (Langkah Berpandu 6 Langkah)
+console.log('\n8. Menguji Mod Pengisian Borang RPH Guru (Langkah Berpandu 6 Langkah):');
 const teacherViewCode = fs.readFileSync('./src/components/TeacherView.tsx', 'utf-8');
 const teacherWizardCode = fs.readFileSync('./src/components/TeacherWizardForm.tsx', 'utf-8');
+const rphPreviewCode = fs.readFileSync('./src/components/RphPreview.tsx', 'utf-8');
+const appCode = fs.readFileSync('./src/App.tsx', 'utf-8');
 
-assert.ok(teacherViewCode.includes("entryMode, setEntryMode"), 'State entryMode mesti wujud dalam TeacherView');
-assert.ok(teacherViewCode.includes("Mod Standard"), 'Mod Standard mesti wujud dalam UI');
-assert.ok(teacherViewCode.includes("Mod Wizard"), 'Mod Wizard mesti wujud dalam UI');
 assert.ok(teacherViewCode.includes("<TeacherWizardForm"), 'TeacherWizardForm mesti dipanggil dalam TeacherView');
 
 const wizardSteps = [
@@ -336,12 +335,16 @@ for (const step of wizardSteps) {
   assert.ok(teacherWizardCode.includes(step), `Langkah wizard "${step}" mesti wujud dalam TeacherWizardForm`);
 }
 
-// Verify that both modes receive and update the same form state
+// Verify support for form updates, generation, multi-slot classes & unsaved admin changes
 assert.ok(teacherWizardCode.includes('onUpdateForm'), 'TeacherWizardForm mesti menyokong onUpdateForm');
 assert.ok(teacherWizardCode.includes('onGeneratePdf'), 'TeacherWizardForm mesti menyokong onGeneratePdf');
+assert.ok(teacherWizardCode.includes('handleAddSlot'), 'TeacherWizardForm mesti mempunyai fungsi tambah kelas (Multi-Slot)');
+assert.ok(rphPreviewCode.includes('renderClassicSlot'), 'RphPreview mesti menyokong rendering berbilang kelas (Multi-Slot)');
+assert.ok(appCode.includes('showUnsavedModal'), 'App.tsx mesti menyokong amaran modal sebelum beralih dari Admin ke Guru');
 
-console.log('✓ Mod Standard & Mod Wizard berjaya dikesan.');
-console.log('✓ Kesemua 6 langkah Wizard / Conversational Form lengkap.');
+console.log('✓ Mod Borang Langkah Berpandu (6 Langkah) lengkap.');
+console.log('✓ Sokongan berbilang kelas dalam 1 A4 (Multi-Slot RPH) disahkan.');
+console.log('✓ Pop-up amaran belum simpan di panel admin disahkan.');
 console.log('✓ Penyelarasan data masa nyata (Single Source of Truth) disahkan.');
 console.log('----------------------------------------------------');
 console.log('SEMUA 8 SEKSYEN UJIAN LULUS DENGAN CEMERLANG! ✓✓✓');
@@ -350,7 +353,6 @@ console.log('SEMUA 8 SEKSYEN UJIAN LULUS DENGAN CEMERLANG! ✓✓✓');
 console.log('\n9. Menguji Editor Susunan Grid PDF (Mod Canva Saiz A4):');
 const adminViewCode = fs.readFileSync('./src/components/AdminView.tsx', 'utf-8');
 const editorCode = fs.readFileSync('./src/components/AdminPdfLayoutEditor.tsx', 'utf-8');
-const rphPreviewCode = fs.readFileSync('./src/components/RphPreview.tsx', 'utf-8');
 const presetsCode = fs.readFileSync('./src/config/gridPresets.ts', 'utf-8');
 
 // A. Tab 4 exists in AdminView
@@ -405,11 +407,10 @@ assert.ok(adminViewCode.includes("handleTambahPilihanBank"), 'AdminView mesti bo
 assert.ok(adminViewCode.includes("handlePadamPilihanBank"), 'AdminView mesti boleh memadam pilihan dropdown kustom');
 console.log('✓ Panel Pengurusan Bank Bahagian Kustom dalam Tab 3 Admin disahkan.');
 
-// C. Teacher View (Standard & Wizard)
-assert.ok(teacherViewCode.includes("Maklumat Tambahan Sekolah"), 'TeacherView mesti memaparkan kad Maklumat Tambahan Sekolah');
-assert.ok(teacherViewCode.includes("form.customValues"), 'TeacherView mesti mengikat nilai kepada form.customValues');
+// C. Teacher View (Wizard Form)
 assert.ok(teacherWizardCode.includes("Maklumat Tambahan Sekolah"), 'TeacherWizardForm mesti mengandungi Maklumat Tambahan Sekolah dalam Langkah 5');
-console.log('✓ Borang Guru (Mod Standard & Mod Wizard) menyokong input dinamik bahagian kustom.');
+assert.ok(teacherWizardCode.includes("form.customValues"), 'TeacherWizardForm mesti mengikat nilai kepada form.customValues');
+console.log('✓ Borang Guru (Langkah Berpandu) menyokong input dinamik bahagian kustom.');
 
 // D. PDF Preview rendering
 assert.ok(rphPreviewCode.includes("data.customValues?.[sectionId]"), 'RphPreview mesti membaca data.customValues mengikut sectionId');

@@ -442,6 +442,208 @@ export const RphPreview: React.FC<Props> = ({
     );
   };
 
+  // Render a single class slot in Classic 2-column layout
+  const renderClassicSlot = (slot: any, slotIdx?: number, totalSlots?: number) => {
+    const isSlotAlQuran = slot.mataPelajaran === 'Al-Quran';
+    const sObjektif = slot.selectedObjektif || slot.objektifPembelajaran || [];
+    const sAktiviti = slot.selectedAktiviti || slot.aktivitiMurid || [];
+    const sKemahiran = slot.selectedKemahiran || slot.kemahiran || {};
+    const sRefleksi = slot.refleksi || { muridMenguasai: '0', muridTidakMenguasai: '0', jumlahMurid: '10', catatan: '' };
+
+    return (
+      <div key={slot.id || slotIdx} className="break-inside-avoid">
+        {totalSlots && totalSlots > 1 && (
+          <div className="bg-emerald-800 text-white font-bold text-xs px-3 py-1.5 flex items-center justify-between border-2 border-b-0 border-slate-900">
+            <span className="tracking-wide">
+              {isJawi
+                ? `کلس ${formatNum(slotIdx! + 1)} : تاهون ${formatNum(slot.tahun)} ${slot.kelas || ''} (${formatNum(slot.masa)})`
+                : `KELAS ${slotIdx! + 1} : TAHUN ${slot.tahun} ${slot.kelas || ''} (${slot.masa || ''})`}
+            </span>
+            <span className="text-[11px] font-semibold text-emerald-200">
+              {formatMataPelajaran(slot.mataPelajaran)}{slot.bidang ? ` - ${slot.bidang}` : ''}
+            </span>
+          </div>
+        )}
+
+        <table className="w-full border-collapse border-2 border-slate-900 text-xs sm:text-sm bg-white">
+          <tbody>
+            <tr>
+              {/* Lajur Info & Refleksi Nisbah (~42%) */}
+              <td className="w-[42%] border border-slate-900 align-top p-0">
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr className="border-b border-slate-900">
+                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                        <span className="font-bold text-slate-900">{getLabel('tahun', 'tahun')} : </span>
+                        <span className="font-bold text-slate-900">
+                          {slot.tahun ? (isJawi ? `تاهون ${formatNum(slot.tahun)}` : `Tahun ${slot.tahun}`) : '-'}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-900">
+                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                        <span className="font-bold text-slate-900">{getLabel('masa', 'masa')} : </span>
+                        <span className="font-bold text-slate-900">{slot.masa ? formatNum(slot.masa) : '-'}</span>
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-900">
+                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                        <span className="font-bold text-slate-900">{getLabel('kelas', 'kelas')} : </span>
+                        <span className="font-bold text-slate-900">{slot.kelas || '-'}</span>
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-900">
+                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                        <span className="font-bold text-slate-900">{getLabel('mataPelajaran', 'mataPelajaran')} : </span>
+                        <span className="font-bold text-emerald-950">{formatMataPelajaran(slot.mataPelajaran)}</span>
+                      </td>
+                    </tr>
+                    {isSlotAlQuran && (
+                      <tr className="border-b border-slate-900 bg-amber-50/40">
+                        <td className="p-1.5 sm:p-2 border border-slate-900">
+                          <span className="font-bold text-slate-900">{getLabel('bidang', 'bidang')} : </span>
+                          <span className="font-bold text-amber-950">{slot.bidang || ''}</span>
+                        </td>
+                      </tr>
+                    )}
+                    {/* Petak Refleksi Nisbah Murid */}
+                    <tr>
+                      <td className="p-2 border border-slate-900 bg-slate-50/30">
+                        <div className="font-bold text-slate-900 mb-1 pb-0.5 border-b border-slate-300 text-xs">
+                          {getLabel('refleksi', 'refleksiGuru')} :
+                        </div>
+                        <div className="space-y-1 text-xs font-medium text-slate-900">
+                          <div className="flex items-center gap-1.5">
+                            <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                            <span>
+                              <strong>{formatNum(sRefleksi.muridMenguasai || '0')}/{formatNum(sRefleksi.jumlahMurid || '0')}</strong>{' '}
+                              {isJawi ? 'موريد مڠواساءي ڤمبلاجرن' : 'murid menguasai pembelajaran'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="inline-block w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                            <span>
+                              <strong>{formatNum(sRefleksi.muridTidakMenguasai || '0')}/{formatNum(sRefleksi.jumlahMurid || '0')}</strong>{' '}
+                              {isJawi ? 'موريد تيدق داڤت مڠواساءي ڤمبلاجرن' : 'murid tidak dapat menguasai pembelajaran'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+
+              {/* Lajur Kandungan Pelajaran (~58%) */}
+              <td className="w-[58%] border border-slate-900 align-top p-0">
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr className="border-b border-slate-900">
+                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                        <span className="font-bold text-slate-900">{getLabel('tajuk', 'tajuk')} : </span>
+                        <span className="font-bold text-slate-900">
+                          {slot.tajuk?.kod ? `${slot.tajuk.kod} ` : ''}{slot.tajuk?.teks || '-'}
+                        </span>
+                      </td>
+                    </tr>
+                    {slot.subtajuk?.teks && (
+                      <tr className="border-b border-slate-900 bg-slate-50/40">
+                        <td className="p-1.5 sm:p-2 border border-slate-900">
+                          <span className="font-bold text-slate-800">{getLabel('subtajuk', 'subtajuk')} : </span>
+                          <span className="font-medium text-slate-800">
+                            {slot.subtajuk.kod ? `${slot.subtajuk.kod} ` : ''}{slot.subtajuk.teks}
+                          </span>
+                        </td>
+                      </tr>
+                    )}
+                    <tr className="border-b border-slate-900">
+                      <td className="p-2 border border-slate-900">
+                        <div className="font-bold text-slate-900 mb-1 text-xs">
+                          {getLabel('objektif', 'objektifPembelajaran')} :
+                        </div>
+                        <ul className="list-disc pr-5 pl-5 space-y-0.5 text-xs">
+                          {sObjektif.filter((o: string) => o.trim()).length > 0 ? (
+                            sObjektif.filter((o: string) => o.trim()).map((obj: string, i: number) => (
+                              <li key={i} className="text-slate-900 font-medium leading-normal">{obj}</li>
+                            ))
+                          ) : (
+                            <li className="text-slate-400 italic list-none">Tiada objektif dimasukkan.</li>
+                          )}
+                        </ul>
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-900 bg-slate-50/20">
+                      <td className="p-2 border border-slate-900">
+                        <div className="font-bold text-slate-900 mb-1 text-xs">
+                          {getLabel('aktiviti', 'aktivitiMurid')} :
+                        </div>
+                        <ul className="list-disc pr-5 pl-5 space-y-0.5 text-xs">
+                          {sAktiviti.filter((a: string) => a.trim()).length > 0 ? (
+                            sAktiviti.filter((a: string) => a.trim()).map((akt: string, i: number) => (
+                              <li key={i} className="text-slate-900 font-medium leading-normal">{akt}</li>
+                            ))
+                          ) : (
+                            <li className="text-slate-400 italic list-none">Tiada aktiviti dimasukkan.</li>
+                          )}
+                        </ul>
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-900 bg-emerald-50/20">
+                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="font-bold text-slate-900 text-xs">
+                            {getLabel('kemahiran', 'kemahiran')} :
+                          </span>
+                          <div className="flex flex-wrap items-center gap-3 text-xs">
+                            <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+                              <span className={`text-sm font-extrabold ${sKemahiran?.lisan ? 'text-emerald-900' : 'text-slate-400'}`}>
+                                {sKemahiran?.lisan ? '☑' : '☐'}
+                              </span>
+                              <span>{isJawi ? 'ليسن' : 'Lisan'}</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+                              <span className={`text-sm font-extrabold ${sKemahiran?.bertulis ? 'text-emerald-900' : 'text-slate-400'}`}>
+                                {sKemahiran?.bertulis ? '☑' : '☐'}
+                              </span>
+                              <span>{isJawi ? 'برتوليس' : 'Bertulis'}</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+                              <span className={`text-sm font-extrabold ${sKemahiran?.pemerhatian ? 'text-emerald-900' : 'text-slate-400'}`}>
+                                {sKemahiran?.pemerhatian ? '☑' : '☐'}
+                              </span>
+                              <span>{isJawi ? 'ڤمرهاتين' : 'Pemerhatian'}</span>
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    {/* Tindakan Susulan / Catatan */}
+                    <tr>
+                      <td className="p-2 border border-slate-900">
+                        <div className="font-bold text-slate-900 mb-0.5 text-xs">
+                          {getLabel('catatan', 'catatan')} :
+                        </div>
+                        {sRefleksi.catatan ? (
+                          <p className="text-slate-900 text-xs leading-relaxed px-1 font-normal whitespace-pre-wrap">
+                            {sRefleksi.catatan}
+                          </p>
+                        ) : (
+                          <p className="text-slate-400 italic text-[11px] px-1">
+                            {isJawi ? 'تياد چاتتن دماسوقکن' : 'Tiada catatan tambahan.'}
+                          </p>
+                        )}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div
       id="rph-pdf-printable-area"
@@ -573,198 +775,34 @@ export const RphPreview: React.FC<Props> = ({
         </div>
       ) : layoutStyle === 'classic' ? (
         /* ==================== FORMAT 1: GRID TAPAK ASAL (2 LAJUR MENGIKUT DOKUMEN TAPAK RPH) ==================== */
-        <table className="w-full border-collapse border-2 border-slate-900 text-xs sm:text-sm bg-white">
-          <tbody>
-            {/* Baris 1: Tarikh, Hari, Minggu (3 Petak Kemas Teratas) */}
-            <tr className="border-b-2 border-slate-900 bg-slate-50/75">
-              <td className="w-1/3 border border-slate-900 p-2 text-center">
-                <span className="font-bold text-slate-900">{getLabel('tarikh', 'tarikh')} : </span>
-                <span className="font-bold text-slate-900">{formatTarikh(data.tarikh)}</span>
-              </td>
-              <td className="w-1/3 border border-slate-900 p-2 text-center">
-                <span className="font-bold text-slate-900">{getLabel('hari', 'hari')} : </span>
-                <span className="font-bold text-slate-900">{formatHari(data.hari)}</span>
-              </td>
-              <td className="w-1/3 border border-slate-900 p-2 text-center">
-                <span className="font-bold text-slate-900">{getLabel('minggu', 'minggu')} : </span>
-                <span className="font-bold text-slate-900">{data.minggu ? formatNum(data.minggu) : '-'}</span>
-              </td>
-            </tr>
+        <div className="space-y-3">
+          {/* Baris 1: Tarikh, Hari, Minggu (3 Petak Kemas Teratas - Dikongsi untuk Hari Ini) */}
+          <table className="w-full border-collapse border-2 border-slate-900 text-xs sm:text-sm bg-white">
+            <tbody>
+              <tr className="bg-slate-50/75">
+                <td className="w-1/3 border border-slate-900 p-2 text-center">
+                  <span className="font-bold text-slate-900">{getLabel('tarikh', 'tarikh')} : </span>
+                  <span className="font-bold text-slate-900">{formatTarikh(data.tarikh)}</span>
+                </td>
+                <td className="w-1/3 border border-slate-900 p-2 text-center">
+                  <span className="font-bold text-slate-900">{getLabel('hari', 'hari')} : </span>
+                  <span className="font-bold text-slate-900">{formatHari(data.hari)}</span>
+                </td>
+                <td className="w-1/3 border border-slate-900 p-2 text-center">
+                  <span className="font-bold text-slate-900">{getLabel('minggu', 'minggu')} : </span>
+                  <span className="font-bold text-slate-900">{data.minggu ? formatNum(data.minggu) : '-'}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-            {/* Baris 2: Bahagian Utama 2 Lajur */}
-            <tr>
-              {/* Lajur Info & Refleksi Nisbah (Kanan dalam Jawi, Kiri dalam Rumi ~42%) */}
-              <td className="w-[42%] border border-slate-900 align-top p-0">
-                <table className="w-full border-collapse">
-                  <tbody>
-                    <tr className="border-b border-slate-900">
-                      <td className="p-2 border border-slate-900">
-                        <span className="font-bold text-slate-900">{getLabel('tahun', 'tahun')} : </span>
-                        <span className="font-bold text-slate-900">
-                          {data.tahun ? (isJawi ? `تاهون ${formatNum(data.tahun)}` : `Tahun ${data.tahun}`) : '-'}
-                        </span>
-                      </td>
-                    </tr>
-                    <tr className="border-b border-slate-900">
-                      <td className="p-2 border border-slate-900">
-                        <span className="font-bold text-slate-900">{getLabel('masa', 'masa')} : </span>
-                        <span className="font-bold text-slate-900">{data.masa ? formatNum(data.masa) : '-'}</span>
-                      </td>
-                    </tr>
-                    <tr className="border-b border-slate-900">
-                      <td className="p-2 border border-slate-900">
-                        <span className="font-bold text-slate-900">{getLabel('kelas', 'kelas')} : </span>
-                        <span className="font-bold text-slate-900">{data.kelas || '-'}</span>
-                      </td>
-                    </tr>
-                    <tr className="border-b border-slate-900">
-                      <td className="p-2 border border-slate-900">
-                        <span className="font-bold text-slate-900">{getLabel('mataPelajaran', 'mataPelajaran')} : </span>
-                        <span className="font-bold text-emerald-950">{formatMataPelajaran(data.mataPelajaran)}</span>
-                      </td>
-                    </tr>
-                    {isAlQuran && (
-                      <tr className="border-b border-slate-900 bg-amber-50/40">
-                        <td className="p-2 border border-slate-900">
-                          <span className="font-bold text-slate-900">{getLabel('bidang', 'bidang')} : </span>
-                          <span className="font-bold text-amber-950">{data.bidang || ''}</span>
-                        </td>
-                      </tr>
-                    )}
-                    {/* Petak Refleksi Nisbah Murid */}
-                    <tr>
-                      <td className="p-2.5 border border-slate-900 bg-slate-50/30">
-                        <div className="font-bold text-slate-900 mb-1.5 pb-1 border-b border-slate-300">
-                          {getLabel('refleksi', 'refleksiGuru')} :
-                        </div>
-                        <div className="space-y-1.5 text-xs sm:text-sm font-medium text-slate-900">
-                          <div className="flex items-center gap-1.5">
-                            <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
-                            <span>
-                              <strong>{formatNum(data.refleksi.muridMenguasai || '0')}/{formatNum(data.refleksi.jumlahMurid || '0')}</strong>{' '}
-                              {isJawi ? 'موريد مڠواساءي ڤمبلاجرن' : 'murid menguasai pembelajaran'}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="inline-block w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                            <span>
-                              <strong>{formatNum(data.refleksi.muridTidakMenguasai || '0')}/{formatNum(data.refleksi.jumlahMurid || '0')}</strong>{' '}
-                              {isJawi ? 'موريد تيدق داڤت مڠواساءي ڤمبلاجرن' : 'murid tidak dapat menguasai pembelajaran'}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-
-              {/* Lajur Kandungan Pelajaran (Kiri dalam Jawi, Kanan dalam Rumi ~58%) */}
-              <td className="w-[58%] border border-slate-900 align-top p-0">
-                <table className="w-full border-collapse">
-                  <tbody>
-                    <tr className="border-b border-slate-900">
-                      <td className="p-2 border border-slate-900">
-                        <span className="font-bold text-slate-900">{getLabel('tajuk', 'tajuk')} : </span>
-                        <span className="font-bold text-slate-900">
-                          {data.tajuk.kod ? `${data.tajuk.kod} ` : ''}{data.tajuk.teks || '-'}
-                        </span>
-                      </td>
-                    </tr>
-                    {data.subtajuk?.teks && (
-                      <tr className="border-b border-slate-900 bg-slate-50/40">
-                        <td className="p-2 border border-slate-900">
-                          <span className="font-bold text-slate-800">{getLabel('subtajuk', 'subtajuk')} : </span>
-                          <span className="font-medium text-slate-800">
-                            {data.subtajuk.kod ? `${data.subtajuk.kod} ` : ''}{data.subtajuk.teks}
-                          </span>
-                        </td>
-                      </tr>
-                    )}
-                    <tr className="border-b border-slate-900">
-                      <td className="p-2.5 border border-slate-900">
-                        <div className="font-bold text-slate-900 mb-1">
-                          {getLabel('objektif', 'objektifPembelajaran')} :
-                        </div>
-                        <ul className="list-disc pr-5 pl-5 space-y-1">
-                          {data.objektifPembelajaran && data.objektifPembelajaran.filter((o: string) => o.trim()).length > 0 ? (
-                            data.objektifPembelajaran.filter((o: string) => o.trim()).map((obj: string, i: number) => (
-                              <li key={i} className="text-slate-900 font-medium leading-normal">{obj}</li>
-                            ))
-                          ) : (
-                            <li className="text-slate-400 italic list-none">Tiada objektif dimasukkan.</li>
-                          )}
-                        </ul>
-                      </td>
-                    </tr>
-                    <tr className="border-b border-slate-900 bg-slate-50/20">
-                      <td className="p-2.5 border border-slate-900">
-                        <div className="font-bold text-slate-900 mb-1">
-                          {getLabel('aktiviti', 'aktivitiMurid')} :
-                        </div>
-                        <ul className="list-disc pr-5 pl-5 space-y-1">
-                          {data.aktivitiMurid && data.aktivitiMurid.filter((a: string) => a.trim()).length > 0 ? (
-                            data.aktivitiMurid.filter((a: string) => a.trim()).map((akt: string, i: number) => (
-                              <li key={i} className="text-slate-900 font-medium leading-normal">{akt}</li>
-                            ))
-                          ) : (
-                            <li className="text-slate-400 italic list-none">Tiada aktiviti dimasukkan.</li>
-                          )}
-                        </ul>
-                      </td>
-                    </tr>
-                    <tr className="border-b border-slate-900 bg-emerald-50/20">
-                      <td className="p-2 border border-slate-900">
-                        <div className="flex flex-wrap items-center gap-4">
-                          <span className="font-bold text-slate-900">
-                            {getLabel('kemahiran', 'kemahiran')} :
-                          </span>
-                          <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm">
-                            <span className="inline-flex items-center gap-1.5 font-bold text-slate-900">
-                              <span className={`text-base font-extrabold ${data.kemahiran?.lisan ? 'text-emerald-900' : 'text-slate-400'}`}>
-                                {data.kemahiran?.lisan ? '☑' : '☐'}
-                              </span>
-                              <span>{isJawi ? 'ليسن' : 'Lisan'}</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 font-bold text-slate-900">
-                              <span className={`text-base font-extrabold ${data.kemahiran?.bertulis ? 'text-emerald-900' : 'text-slate-400'}`}>
-                                {data.kemahiran?.bertulis ? '☑' : '☐'}
-                              </span>
-                              <span>{isJawi ? 'برتوليس' : 'Bertulis'}</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 font-bold text-slate-900">
-                              <span className={`text-base font-extrabold ${data.kemahiran?.pemerhatian ? 'text-emerald-900' : 'text-slate-400'}`}>
-                                {data.kemahiran?.pemerhatian ? '☑' : '☐'}
-                              </span>
-                              <span>{isJawi ? 'ڤمرهاتين' : 'Pemerhatian'}</span>
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    {/* Tindakan Susulan / Catatan (Tiada petak bertindih) */}
-                    <tr>
-                      <td className="p-2.5 border border-slate-900">
-                        <div className="font-bold text-slate-900 mb-1">
-                          {getLabel('catatan', 'catatan')} :
-                        </div>
-                        {data.refleksi.catatan ? (
-                          <p className="text-slate-900 text-xs sm:text-sm leading-relaxed px-1 font-normal whitespace-pre-wrap">
-                            {data.refleksi.catatan}
-                          </p>
-                        ) : (
-                          <p className="text-slate-400 italic text-xs px-1">
-                            {isJawi ? 'تياد چاتتن دماسوقکن' : 'Tiada catatan tambahan.'}
-                          </p>
-                        )}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          {/* Senarai RPH Kelas (Satu atau Lebih Kelas dalam 1 Lembaran A4) */}
+          {data.slots && data.slots.length > 1 ? (
+            data.slots.map((slot, idx) => renderClassicSlot(slot, idx, data.slots!.length))
+          ) : (
+            renderClassicSlot(data.slots && data.slots.length === 1 ? data.slots[0] : data, 0, 1)
+          )}
+        </div>
       ) : (
         /* ==================== FORMAT 2: GRID KEMAS & MODEN (SETIAP PETAK BERGARIS TEGAK & JELAS) ==================== */
         <table className="w-full border-collapse border-2 border-slate-900 text-xs sm:text-sm bg-white">

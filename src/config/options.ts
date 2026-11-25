@@ -144,7 +144,43 @@ export const DEFAULT_TEACHER_FORM: TeacherDailyForm = {
     jumlahMurid: "10",
     catatan: "Guru perlu pelbagaikan lagi BBM untuk menarik minat murid dalam pelajaran."
   },
-  skrip: "jawi"
+  skrip: "jawi",
+  activeSlotIndex: 0,
+  slots: [
+    {
+      id: "slot-1",
+      tahun: "5",
+      kelas: "Umar",
+      masa: "2.30 - 3.30",
+      mataPelajaran: "Adab",
+      bidang: null,
+      tajuk: {
+        kod: "5.8",
+        teks: "Adab Bersyukur"
+      },
+      subtajuk: {
+        kod: "5.8.1",
+        teks: "Pengertian Bersyukur dan Dalil"
+      },
+      selectedObjektif: [
+        "Menyatakan pengertian bersyukur dengan jelas."
+      ],
+      selectedAktiviti: [
+        "Melengkapkan pengertian bersyukur dihadapan kelas."
+      ],
+      selectedKemahiran: {
+        lisan: true,
+        bertulis: false,
+        pemerhatian: false
+      },
+      refleksi: {
+        muridMenguasai: "7",
+        muridTidakMenguasai: "3",
+        jumlahMurid: "10",
+        catatan: "Guru perlu pelbagaikan lagi BBM untuk menarik minat murid dalam pelajaran."
+      }
+    }
+  ]
 };
 
 export const HARI_OPTIONS = [
