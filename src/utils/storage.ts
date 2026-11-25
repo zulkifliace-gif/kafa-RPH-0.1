@@ -1,8 +1,10 @@
-import { AdminSchoolConfig, TeacherDailyForm } from '../types/rph';
+import { AdminSchoolConfig, TeacherDailyForm, WeeklyScheduleMap } from '../types/rph';
 import { DEFAULT_ADMIN_CONFIG, DEFAULT_TEACHER_FORM } from '../config/options';
 
 const STORAGE_KEY_ADMIN = 'rph_kafa_v3_admin_config';
+const STORAGE_KEY_ADMIN_DRAFT = 'rph_kafa_v3_admin_draft';
 const STORAGE_KEY_TEACHER = 'rph_kafa_v3_teacher_form';
+const STORAGE_KEY_TEACHER_SCHEDULE = 'rph_kafa_v3_teacher_schedule';
 
 export function loadAdminConfig(): AdminSchoolConfig {
   try {
@@ -38,7 +40,8 @@ export function loadAdminConfig(): AdminSchoolConfig {
             return parsed.bank.kurikulum;
           })()
         },
-        customPdfLayout: parsed.customPdfLayout || DEFAULT_ADMIN_CONFIG.customPdfLayout
+        customPdfLayout: parsed.customPdfLayout || DEFAULT_ADMIN_CONFIG.customPdfLayout,
+        jadualWaktu: parsed.jadualWaktu || DEFAULT_ADMIN_CONFIG.jadualWaktu
       };
     }
   } catch (err) {
@@ -189,7 +192,8 @@ export async function importSchoolConfigFile(file: File): Promise<AdminSchoolCon
               ? rawConfig.bank.kurikulum
               : DEFAULT_ADMIN_CONFIG.bank.kurikulum
           },
-          customPdfLayout: rawConfig.customPdfLayout || DEFAULT_ADMIN_CONFIG.customPdfLayout
+          customPdfLayout: rawConfig.customPdfLayout || DEFAULT_ADMIN_CONFIG.customPdfLayout,
+          jadualWaktu: rawConfig.jadualWaktu || DEFAULT_ADMIN_CONFIG.jadualWaktu
         };
 
         saveAdminConfig(merged);
@@ -264,4 +268,79 @@ export async function importTeacherBackupFile(file: File): Promise<TeacherDailyF
     reader.onerror = () => reject(new Error('Gagal membaca fail.'));
     reader.readAsText(file);
   });
+}
+
+/**
+ * Simpan draf suntingan Panel Admin secara automatik bagi mengelak kehilangan data jika pelayar ter-refresh.
+ */
+export function saveAdminDraft(cfg: AdminSchoolConfig): void {
+  try {
+    const payload = {
+      savedAt: new Date().toISOString(),
+      config: cfg
+    };
+    localStorage.setItem(STORAGE_KEY_ADMIN_DRAFT, JSON.stringify(payload));
+  } catch (err) {
+    console.error('Ralat menyimpan draf admin:', err);
+  }
+}
+
+/**
+ * Muatkan draf belum simpan Panel Admin jika wujud.
+ */
+export function loadAdminDraft(): { savedAt: string; config: AdminSchoolConfig } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ADMIN_DRAFT);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.config && typeof parsed.config === 'object') {
+      return {
+        savedAt: parsed.savedAt || new Date().toISOString(),
+        config: parsed.config
+      };
+    }
+  } catch (err) {
+    console.error('Ralat membaca draf admin:', err);
+  }
+  return null;
+}
+
+/**
+ * Padam draf sementara Panel Admin selepas disimpan atau diabaikan.
+ */
+export function clearAdminDraft(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY_ADMIN_DRAFT);
+  } catch (err) {
+    console.error('Ralat memadam draf admin:', err);
+  }
+}
+
+/**
+ * Muatkan Jadual Waktu Mingguan peribadi guru (atau guna templat sekolah daripada Admin sebagai lalai).
+ */
+export function loadTeacherSchedule(fallback?: WeeklyScheduleMap): WeeklyScheduleMap {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_TEACHER_SCHEDULE);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Ralat membaca jadual guru:', err);
+  }
+  return fallback ? JSON.parse(JSON.stringify(fallback)) : {};
+}
+
+/**
+ * Simpan Jadual Waktu Mingguan peribadi guru.
+ */
+export function saveTeacherSchedule(schedule: WeeklyScheduleMap): void {
+  try {
+    localStorage.setItem(STORAGE_KEY_TEACHER_SCHEDULE, JSON.stringify(schedule));
+  } catch (err) {
+    console.error('Ralat menyimpan jadual guru:', err);
+  }
 }

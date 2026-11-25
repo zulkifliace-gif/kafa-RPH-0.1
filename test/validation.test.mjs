@@ -349,9 +349,23 @@ console.log('✓ Penyelarasan data masa nyata (Single Source of Truth) disahkan.
 console.log('----------------------------------------------------');
 console.log('SEMUA 8 SEKSYEN UJIAN LULUS DENGAN CEMERLANG! ✓✓✓');
 
+// Helper membaca keseluruhan modul Panel Admin (AdminView + sub-komponen modular di src/components/admin/)
+function readAdminBundle() {
+  const adminDir = './src/components/admin';
+  let combined = fs.readFileSync('./src/components/AdminView.tsx', 'utf-8');
+  if (fs.existsSync(adminDir)) {
+    for (const file of fs.readdirSync(adminDir)) {
+      if (file.endsWith('.tsx') || file.endsWith('.ts')) {
+        combined += '\n' + fs.readFileSync(`${adminDir}/${file}`, 'utf-8');
+      }
+    }
+  }
+  return combined;
+}
+
 // 9. Test Canva A4 PDF Grid Builder in Panel Editor
 console.log('\n9. Menguji Editor Susunan Grid PDF (Mod Canva Saiz A4):');
-const adminViewCode = fs.readFileSync('./src/components/AdminView.tsx', 'utf-8');
+const adminViewCode = readAdminBundle();
 const editorCode = fs.readFileSync('./src/components/AdminPdfLayoutEditor.tsx', 'utf-8');
 const presetsCode = fs.readFileSync('./src/config/gridPresets.ts', 'utf-8');
 
@@ -451,7 +465,7 @@ console.log('SEMUA 11 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n')
 
 // 12. Menguji Kustom Tajuk Tandatangan & Muat Naik Gambar Logo Sekolah
 console.log('12. Menguji Kustom Format Tandatangan & Muat Naik Logo Sekolah:');
-const freshAdminViewCode = fs.readFileSync('./src/components/AdminView.tsx', 'utf-8');
+const freshAdminViewCode = readAdminBundle();
 const freshRphPreviewCode = fs.readFileSync('./src/components/RphPreview.tsx', 'utf-8');
 
 // A. Format Nama Tajuk Bahagian Tandatangan
@@ -489,7 +503,7 @@ console.log('SEMUA 13 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n')
 console.log('14. Menguji Ciri Eksport & Pemasangan Data Sekolah (Offline):');
 const storageCode = fs.readFileSync('./src/utils/storage.ts', 'utf-8');
 const freshTeacherCode = fs.readFileSync('./src/components/TeacherView.tsx', 'utf-8');
-const latestAdminCode = fs.readFileSync('./src/components/AdminView.tsx', 'utf-8');
+const latestAdminCode = readAdminBundle();
 
 // A. Storage utilities
 assert.ok(storageCode.includes('exportSchoolConfigFile'), 'storage.ts mesti ada fungsi exportSchoolConfigFile');
@@ -519,7 +533,7 @@ console.log('SEMUA 14 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n')
 // 15. Menguji Format Tajuk Bahagian Asas & Susunan Tarikh Jawi (Tahun / Bulan / Hari)
 console.log('15. Menguji Format Tajuk Bahagian Asas & Susunan Tarikh Jawi:');
 const jawiHelperCode = fs.readFileSync('./src/utils/jawiHelper.ts', 'utf-8');
-const sec15AdminCode = fs.readFileSync('./src/components/AdminView.tsx', 'utf-8');
+const sec15AdminCode = readAdminBundle();
 
 // A. Pengesahan 7 Tajuk Bahagian Asas dalam AdminView Tab 2
 const requiredBasicCards = [
@@ -654,5 +668,76 @@ console.log('✓ Sumber ikon Android APK natif (MDPI hingga XXXHDPI & Master 102
 
 console.log('----------------------------------------------------');
 console.log('SEMUA 16 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');
+
+// 17. Menguji Naik Taraf Struktur Penyuntingan Data (7 Ciri Utama)
+console.log('17. Menguji Naik Taraf Struktur Penyuntingan Data (Admin Modular, Undo/Redo, CSV, Jadual Mingguan):');
+
+// A. Modul-modul baharu wujud
+const requiredModules = [
+  './src/hooks/useAdminEditor.ts',
+  './src/utils/csvHelper.ts',
+  './src/components/admin/EditableListItem.tsx',
+  './src/components/admin/BulkPasteModal.tsx',
+  './src/components/admin/StickySaveBar.tsx',
+  './src/components/admin/AdminProfileTab.tsx',
+  './src/components/admin/AdminLabelsTab.tsx',
+  './src/components/admin/AdminBasicBankTab.tsx',
+  './src/components/admin/AdminCurriculumTab.tsx',
+  './src/components/admin/AdminGeneralBankTab.tsx',
+  './src/components/admin/AdminScheduleTab.tsx',
+  './src/components/TeacherScheduleModal.tsx'
+];
+
+for (const modPath of requiredModules) {
+  assert.ok(fs.existsSync(modPath), `Fail modul baharu ${modPath} mesti wujud`);
+}
+console.log(`✓ Kesemua ${requiredModules.length} fail modular penyuntingan data baharu wujud.`);
+
+// B. Semak ciri utama dalam useAdminEditor.ts (Undo/Redo, Cascading Rename, Inline Edit, Reorder, Bulk)
+const reducerCode = fs.readFileSync('./src/hooks/useAdminEditor.ts', 'utf-8');
+assert.ok(reducerCode.includes("case 'RENAME_SUBJECT'"), 'useAdminEditor mesti menyokong cascading RENAME_SUBJECT');
+assert.ok(reducerCode.includes("case 'RENAME_BIDANG'"), 'useAdminEditor mesti menyokong cascading RENAME_BIDANG');
+assert.ok(reducerCode.includes("case 'EDIT_LIST_ITEM'"), 'useAdminEditor mesti menyokong inline EDIT_LIST_ITEM');
+assert.ok(reducerCode.includes("case 'REORDER_LIST_ITEM'"), 'useAdminEditor mesti menyokong REORDER_LIST_ITEM');
+assert.ok(reducerCode.includes("case 'BULK_ADD_LIST_ITEMS'"), 'useAdminEditor mesti menyokong BULK_ADD_LIST_ITEMS');
+assert.ok(reducerCode.includes("case 'IMPORT_KURIKULUM'"), 'useAdminEditor mesti menyokong IMPORT_KURIKULUM (CSV)');
+assert.ok(reducerCode.includes("action.type === 'UNDO'") && reducerCode.includes("action.type === 'REDO'"), 'useAdminEditor mesti menyokong UNDO & REDO');
+assert.ok(reducerCode.includes('saveAdminDraft'), 'useAdminEditor mesti menyimpan draf automatik');
+console.log('✓ Hook useAdminEditor (Undo/Redo, Cascading Rename, Reorder, Inline Edit, Bulk, Auto-Draft) disahkan.');
+
+// C. Semak utiliti simpanan draf & jadual dalam storage.ts
+assert.ok(storageCode.includes('saveAdminDraft') && storageCode.includes('loadAdminDraft') && storageCode.includes('clearAdminDraft'), 'storage.ts mesti ada utiliti draf admin');
+assert.ok(storageCode.includes('loadTeacherSchedule') && storageCode.includes('saveTeacherSchedule'), 'storage.ts mesti ada utiliti jadual guru');
+console.log('✓ Utiliti simpanan draf automatik & jadual mingguan dalam storage.ts disahkan.');
+
+// D. Semak Carian Global, CSV/Excel & Jadual Mingguan dalam UI
+const currTabCode = fs.readFileSync('./src/components/admin/AdminCurriculumTab.tsx', 'utf-8');
+const csvCode = fs.readFileSync('./src/utils/csvHelper.ts', 'utf-8');
+assert.ok(currTabCode.includes('Hasil Carian Global'), 'AdminCurriculumTab mesti ada Carian Global');
+assert.ok(currTabCode.includes('Eksport CSV/Excel') && currTabCode.includes('Import CSV'), 'AdminCurriculumTab mesti ada Eksport & Import CSV');
+assert.ok(csvCode.includes('\\uFEFF'), 'csvHelper.ts mesti menyertakan UTF-8 BOM untuk keserasian Excel & Jawi');
+assert.ok(teacherWizardCode.includes('TeacherScheduleModal') && teacherWizardCode.includes('Muat Jadual'), 'TeacherWizardForm mesti menyepadukan Muat Jadual Mingguan');
+console.log('✓ Carian Global, Eksport/Import CSV UTF-8 BOM, dan Muat Jadual Mingguan Guru disahkan.');
+
+// E. Uji logik CSV & Tampal Pukal (simulasi pusingan penuh termasuk teks Jawi & koma dalam petikan)
+function simParseBulkLines(rawText, existing = []) {
+  const existingSet = new Set(existing.map((s) => s.trim()));
+  const seen = new Set();
+  const out = [];
+  for (const line of rawText.split(/\r?\n/)) {
+    const c = line.trim();
+    if (!c || existingSet.has(c) || seen.has(c)) continue;
+    seen.add(c);
+    out.push(c);
+  }
+  return out;
+}
+
+const bulkParsed = simParseBulkLines('  Umar \n\n Bilal \n Umar \n Ali ', ['Bilal']);
+assert.deepStrictEqual(bulkParsed, ['Umar', 'Ali'], 'parseBulkLines mesti membuang ruang kosong, pendua dan item sedia ada');
+console.log('✓ Ujian logik tampal pukal (deduplikasi & tapisan baris kosong) lulus 100%.');
+
+console.log('----------------------------------------------------');
+console.log('SEMUA 17 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');
 
 

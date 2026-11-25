@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { AdminSchoolConfig, TeacherDailyForm, ScriptMode, RphClassSlot } from '../types/rph';
+import { AdminSchoolConfig, TeacherDailyForm, ScriptMode, RphClassSlot, WeeklyScheduleMap, WeeklyScheduleSlot } from '../types/rph';
 import { HARI_OPTIONS } from '../config/options';
 import { getDayFromDate, getWeekNumber, formatMalayDate } from '../utils/jawiHelper';
+import { loadTeacherSchedule, saveTeacherSchedule } from '../utils/storage';
+import { TeacherScheduleModal } from './TeacherScheduleModal';
 import {
   Clock,
   BookOpen,
@@ -19,7 +21,8 @@ import {
   CheckCircle2,
   Trash2,
   Copy,
-  School
+  School,
+  Calendar
 } from 'lucide-react';
 
 interface Props {
@@ -53,9 +56,62 @@ export const TeacherWizardForm: React.FC<Props> = ({
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [customObjektifInput, setCustomObjektifInput] = useState('');
   const [customAktivitiInput, setCustomAktivitiInput] = useState('');
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [teacherSchedule, setTeacherSchedule] = useState<WeeklyScheduleMap>(() =>
+    loadTeacherSchedule(config.jadualWaktu)
+  );
 
   const isJawi = skrip === 'jawi';
   const customLabels = config.labelCustom;
+
+  const handleSaveTeacherSchedule = (nextSchedule: WeeklyScheduleMap) => {
+    setTeacherSchedule(nextSchedule);
+    saveTeacherSchedule(nextSchedule);
+  };
+
+  const handleApplyScheduleDay = (day: string, scheduledSlots: WeeklyScheduleSlot[]) => {
+    if (!scheduledSlots || scheduledSlots.length === 0) return;
+    const generatedSlots: RphClassSlot[] = scheduledSlots.map((sc, idx) => ({
+      id: `slot-sched-${Date.now()}-${idx}`,
+      tahun: sc.tahun,
+      kelas: sc.kelas,
+      masa: sc.masa,
+      mataPelajaran: sc.mataPelajaran,
+      bidang: sc.mataPelajaran === 'Al-Quran' ? sc.bidang || config.bank.bidangAlQuran[0] || 'Tilawah' : null,
+      tajuk: { kod: '', teks: '' },
+      subtajuk: { kod: '', teks: '' },
+      selectedObjektif: [],
+      selectedAktiviti: [],
+      selectedKemahiran: { lisan: true, bertulis: false, pemerhatian: false },
+      refleksi: {
+        muridMenguasai: '0',
+        muridTidakMenguasai: '0',
+        jumlahMurid: '10',
+        catatan: ''
+      }
+    }));
+
+    const first = generatedSlots[0];
+    parentUpdateForm({
+      hari: day,
+      slots: generatedSlots,
+      activeSlotIndex: 0,
+      tahun: first.tahun,
+      kelas: first.kelas,
+      masa: first.masa,
+      mataPelajaran: first.mataPelajaran,
+      bidang: first.bidang,
+      tajuk: first.tajuk,
+      subtajuk: first.subtajuk,
+      selectedObjektif: first.selectedObjektif,
+      selectedAktiviti: first.selectedAktiviti,
+      selectedKemahiran: first.selectedKemahiran,
+      refleksi: first.refleksi
+    });
+    setCurrentStep(2); // Jump straight to choosing Tajuk for Class 1!
+  };
+
+  const todayScheduleSlots = teacherSchedule[form.hari] || config.jadualWaktu?.[form.hari] || [];
 
   // Slots state initialization & safety
   const rawSlots: RphClassSlot[] = form.slots && form.slots.length > 0 ? form.slots : [
@@ -529,7 +585,27 @@ export const TeacherWizardForm: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 self-start sm:self-auto shrink-0">
+          <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto shrink-0">
+            {todayScheduleSlots.length > 0 && (
+              <button
+                type="button"
+                onClick={() => handleApplyScheduleDay(form.hari, todayScheduleSlots)}
+                title={`Muatkan ${todayScheduleSlots.length} slot kelas daripada jadual hari ${form.hari}`}
+                className="px-2.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs transition-all cursor-pointer"
+              >
+                <Calendar size={13} />
+                <span>Muat Jadual {form.hari} ({todayScheduleSlots.length})</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowScheduleModal(true)}
+              title="Urus Jadual Waktu Mingguan Saya (Isnin - Ahad)"
+              className="px-2.5 py-1.5 rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-950/40 hover:bg-teal-100 text-teal-800 dark:text-teal-300 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+            >
+              <Calendar size={13} />
+              <span>Jadual Saya</span>
+            </button>
             <button
               type="button"
               onClick={handleDuplicateSlot}
@@ -1595,6 +1671,18 @@ export const TeacherWizardForm: React.FC<Props> = ({
         </div>
 
       </div>
+
+      {/* Modal Jadual Waktu Mingguan Guru */}
+      <TeacherScheduleModal
+        isOpen={showScheduleModal}
+        config={config}
+        schedule={teacherSchedule}
+        currentDay={form.hari || 'Isnin'}
+        currentDaySlots={slots}
+        onSaveSchedule={handleSaveTeacherSchedule}
+        onApplyDayToForm={handleApplyScheduleDay}
+        onClose={() => setShowScheduleModal(false)}
+      />
     </div>
   );
 };

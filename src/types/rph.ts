@@ -71,7 +71,21 @@ export interface AdminSchoolConfig {
 
   // Custom PDF Grid / Canva A4 Layout
   customPdfLayout?: CustomPdfLayoutConfig;
+
+  // Weekly Schedule Templates (Isnin - Ahad)
+  jadualWaktu?: WeeklyScheduleMap;
 }
+
+export interface WeeklyScheduleSlot {
+  id: string;
+  tahun: string;
+  kelas: string;
+  masa: string;
+  mataPelajaran: string;
+  bidang: string | null;
+}
+
+export type WeeklyScheduleMap = Record<string, WeeklyScheduleSlot[]>;
 
 // ==========================================
 // CANVA A4 PDF GRID BUILDER TYPES
