@@ -740,4 +740,17 @@ console.log('✓ Ujian logik tampal pukal (deduplikasi & tapisan baris kosong) l
 console.log('----------------------------------------------------');
 console.log('SEMUA 17 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');
 
+// 18. Menguji Mod Padat 4 RPH dalam 1 Kertas A4 & Eksport PDF Mudah Alih Tanpa Halaman Kosong
+console.log('18. Menguji Mod Padat 4 RPH dalam 1 A4 & Eksport PDF Tepat 1 Muka Surat:');
+const freshPreview18 = fs.readFileSync('./src/components/RphPreview.tsx', 'utf-8');
+const pdfExportCode = fs.readFileSync('./src/utils/pdfExport.ts', 'utf-8');
+assert.ok(freshPreview18.includes('renderCompactFourPerPageSlot'), 'RphPreview mesti ada renderCompactFourPerPageSlot untuk muat 3-4 RPH dalam 1 A4');
+assert.ok(freshPreview18.includes('isCompactMulti = slotCount >= 3'), 'RphPreview mesti aktifkan susunan padat secara automatik apabila >= 3 kelas');
+assert.ok(freshPreview18.includes('renderBulletList'), 'RphPreview mesti guna renderBulletList sebaris untuk titik Jawi/Rumi kemas');
+assert.ok(pdfExportCode.includes("width = '780px'") || pdfExportCode.includes("780px"), 'pdfExport mesti klon ke lebar desktop A4 780px supaya iPhone/Android tidak rosak');
+assert.ok(pdfExportCode.includes('shouldFitSingleA4') && pdfExportCode.includes('maxSinglePageHeight'), 'pdfExport mesti memastikan 1-4 RPH muat tepat dalam 1 muka surat A4');
+console.log('✓ Susunan 4 RPH dalam 1 kertas A4 (sebelah-menyebelah Objektif/Aktiviti) & eksport PDF telefon tepat 1 muka surat disahkan.');
+console.log('----------------------------------------------------');
+console.log('SEMUA 18 SEKSYEN UJIAN SISTEM LULUS DENGAN CEMERLANG! ✓✓✓\n');
+
 

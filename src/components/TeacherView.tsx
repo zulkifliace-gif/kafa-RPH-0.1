@@ -276,9 +276,16 @@ export const TeacherView: React.FC<Props> = ({
           {/* Preview Controls Bar */}
           <div className="bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 no-print">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                Pratonton Dokumen A4:
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Pratonton Dokumen A4:
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
+                  {(form.slots?.length || 1) <= 4
+                    ? `Muat 1 Kertas A4 (${form.slots?.length || 1} RPH)`
+                    : `${form.slots?.length || 1} RPH`}
+                </span>
+              </div>
 
               {/* Back to form button on mobile */}
               <button

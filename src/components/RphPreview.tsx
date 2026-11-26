@@ -442,18 +442,158 @@ export const RphPreview: React.FC<Props> = ({
     );
   };
 
-  // Render a single class slot in Classic 2-column layout
+  const slotList = data.slots && data.slots.length > 0 ? data.slots : [data];
+  const slotCount = slotList.length;
+  const isCompactMulti = slotCount >= 3;
+
+  // Render bullet items inline so Jawi dots ALWAYS sit cleanly beside the text in PDF/iOS
+  const renderBulletList = (items: string[], emptyText: string, compactSpacing: boolean) => {
+    const clean = (items || []).filter((x) => x && x.trim());
+    if (clean.length === 0) {
+      return <div className="text-slate-400 italic text-[11px]">{emptyText}</div>;
+    }
+    return (
+      <div className={compactSpacing ? 'space-y-0.5' : 'space-y-1'}>
+        {clean.map((txt, idx) => (
+          <div key={idx} className="flex items-start gap-1.5 leading-snug text-slate-900 font-medium">
+            <span className="shrink-0 font-bold text-emerald-800">•</span>
+            <span className="flex-1 min-w-0">{txt}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Render 4-row ultra-clear Compact RPH Slot (fits up to 4 RPHs cleanly in 1 single A4 page!)
+  const renderCompactFourPerPageSlot = (slot: any, slotIdx: number, totalSlots: number) => {
+    const isSlotAlQuran = slot.mataPelajaran === 'Al-Quran';
+    const sObjektif = slot.selectedObjektif || slot.objektifPembelajaran || [];
+    const sAktiviti = slot.selectedAktiviti || slot.aktivitiMurid || [];
+    const sKemahiran = slot.selectedKemahiran || slot.kemahiran || {};
+    const sRefleksi = slot.refleksi || {
+      muridMenguasai: '0',
+      muridTidakMenguasai: '0',
+      jumlahMurid: '10',
+      catatan: ''
+    };
+
+    return (
+      <div key={slot.id || slotIdx} className="border-2 border-slate-900 bg-white">
+        {/* Baris 1: Header Kelas Padat (Tahun, Kelas, Masa, Subjek, Bidang) */}
+        <div className="bg-emerald-800 text-white font-bold text-[11.5px] px-2.5 py-1 flex flex-wrap items-center justify-between gap-2 border-b border-slate-900">
+          <span>
+            {isJawi
+              ? `کلس ${formatNum(slotIdx + 1)} : تاهون ${formatNum(slot.tahun)} ${slot.kelas || ''}  |  ${getLabel('masa', 'masa')}: ${formatNum(slot.masa)}`
+              : `KELAS ${slotIdx + 1}/${totalSlots} : Tahun ${slot.tahun || '-'} ${slot.kelas || ''}  |  Masa: ${slot.masa || '-'}`}
+          </span>
+          <span className="text-emerald-100">
+            {formatMataPelajaran(slot.mataPelajaran)}
+            {isSlotAlQuran && slot.bidang ? ` (${slot.bidang})` : ''}
+          </span>
+        </div>
+
+        <table className="w-full border-collapse text-[11px] bg-white">
+          <tbody>
+            {/* Baris 2: Tajuk & Subtajuk sebaris */}
+            <tr className="border-b border-slate-900 bg-slate-50/70">
+              <td colSpan={2} className="px-2 py-1 border-slate-900 leading-snug">
+                <span className="font-bold text-slate-900">{getLabel('tajuk', 'tajuk')} : </span>
+                <span className="font-bold text-slate-900">
+                  {slot.tajuk?.kod ? `${slot.tajuk.kod} ` : ''}
+                  {slot.tajuk?.teks || '-'}
+                </span>
+                {slot.subtajuk?.teks && (
+                  <span className="text-slate-700">
+                    {' '}
+                    — <strong className="text-slate-800">{getLabel('subtajuk', 'subtajuk')}:</strong>{' '}
+                    {slot.subtajuk.kod ? `${slot.subtajuk.kod} ` : ''}
+                    {slot.subtajuk.teks}
+                  </span>
+                )}
+              </td>
+            </tr>
+
+            {/* Baris 3: Objektif (50%) & Aktiviti (50%) sebelah-menyebelah supaya jimat ruang menegak */}
+            <tr className="border-b border-slate-900">
+              <td className="w-1/2 p-1.5 border-e border-slate-900 align-top">
+                <div className="font-bold text-slate-900 mb-0.5 text-[11px]">
+                  {getLabel('objektif', 'objektifPembelajaran')} :
+                </div>
+                {renderBulletList(sObjektif, 'Tiada objektif.', true)}
+              </td>
+              <td className="w-1/2 p-1.5 align-top bg-slate-50/30">
+                <div className="font-bold text-slate-900 mb-0.5 text-[11px]">
+                  {getLabel('aktiviti', 'aktivitiMurid')} :
+                </div>
+                {renderBulletList(sAktiviti, 'Tiada aktiviti.', true)}
+              </td>
+            </tr>
+
+            {/* Baris 4: Refleksi + Catatan (Kanan/Kiri 58%) & Kemahiran (42%) */}
+            <tr>
+              <td className="w-[58%] px-2 py-1 border-e border-slate-900 align-top">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 leading-snug">
+                  <span>
+                    <strong className="text-slate-900">{getLabel('refleksi', 'refleksiGuru')}</strong>{' '}
+                    <strong className="text-emerald-900">
+                      {formatNum(sRefleksi.muridMenguasai || '0')}/{formatNum(sRefleksi.jumlahMurid || '0')}
+                    </strong>{' '}
+                    {isJawi ? 'مڠواساءي' : 'menguasai'},{' '}
+                    <strong className="text-rose-700">
+                      {formatNum(sRefleksi.muridTidakMenguasai || '0')}/{formatNum(sRefleksi.jumlahMurid || '0')}
+                    </strong>{' '}
+                    {isJawi ? 'تيدق مڠواساءي' : 'belum'}
+                  </span>
+                </div>
+                {sRefleksi.catatan && (
+                  <div className="text-slate-800 mt-0.5 leading-snug">
+                    <strong>{getLabel('catatan', 'catatan')} :</strong> {sRefleksi.catatan}
+                  </div>
+                )}
+              </td>
+              <td className="w-[42%] px-2 py-1 align-middle bg-emerald-50/20">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+                  <span className="font-bold text-slate-900">{getLabel('kemahiran', 'kemahiran')}</span>
+                  <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+                    <span className={sKemahiran?.lisan ? 'text-emerald-900' : 'text-slate-400'}>
+                      {sKemahiran?.lisan ? '☑' : '☐'}
+                    </span>
+                    <span>{isJawi ? 'ليسن' : 'Lisan'}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+                    <span className={sKemahiran?.bertulis ? 'text-emerald-900' : 'text-slate-400'}>
+                      {sKemahiran?.bertulis ? '☑' : '☐'}
+                    </span>
+                    <span>{isJawi ? 'برتوليس' : 'Bertulis'}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+                    <span className={sKemahiran?.pemerhatian ? 'text-emerald-900' : 'text-slate-400'}>
+                      {sKemahiran?.pemerhatian ? '☑' : '☐'}
+                    </span>
+                    <span>{isJawi ? 'ڤمرهاتين' : 'Pemerhatian'}</span>
+                  </span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  // Render a single class slot in Classic 2-column layout (used when 1-2 classes)
   const renderClassicSlot = (slot: any, slotIdx?: number, totalSlots?: number) => {
     const isSlotAlQuran = slot.mataPelajaran === 'Al-Quran';
     const sObjektif = slot.selectedObjektif || slot.objektifPembelajaran || [];
     const sAktiviti = slot.selectedAktiviti || slot.aktivitiMurid || [];
     const sKemahiran = slot.selectedKemahiran || slot.kemahiran || {};
     const sRefleksi = slot.refleksi || { muridMenguasai: '0', muridTidakMenguasai: '0', jumlahMurid: '10', catatan: '' };
+    const compactCell = totalSlots && totalSlots >= 2 ? 'p-1.5' : 'p-1.5 sm:p-2';
 
     return (
-      <div key={slot.id || slotIdx} className="break-inside-avoid">
+      <div key={slot.id || slotIdx}>
         {totalSlots && totalSlots > 1 && (
-          <div className="bg-emerald-800 text-white font-bold text-xs px-3 py-1.5 flex items-center justify-between border-2 border-b-0 border-slate-900">
+          <div className="bg-emerald-800 text-white font-bold text-xs px-3 py-1 flex items-center justify-between border-2 border-b-0 border-slate-900">
             <span className="tracking-wide">
               {isJawi
                 ? `کلس ${formatNum(slotIdx! + 1)} : تاهون ${formatNum(slot.tahun)} ${slot.kelas || ''} (${formatNum(slot.masa)})`
@@ -473,7 +613,7 @@ export const RphPreview: React.FC<Props> = ({
                 <table className="w-full border-collapse">
                   <tbody>
                     <tr className="border-b border-slate-900">
-                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                      <td className={`${compactCell} border border-slate-900`}>
                         <span className="font-bold text-slate-900">{getLabel('tahun', 'tahun')} : </span>
                         <span className="font-bold text-slate-900">
                           {slot.tahun ? (isJawi ? `تاهون ${formatNum(slot.tahun)}` : `Tahun ${slot.tahun}`) : '-'}
@@ -481,26 +621,26 @@ export const RphPreview: React.FC<Props> = ({
                       </td>
                     </tr>
                     <tr className="border-b border-slate-900">
-                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                      <td className={`${compactCell} border border-slate-900`}>
                         <span className="font-bold text-slate-900">{getLabel('masa', 'masa')} : </span>
                         <span className="font-bold text-slate-900">{slot.masa ? formatNum(slot.masa) : '-'}</span>
                       </td>
                     </tr>
                     <tr className="border-b border-slate-900">
-                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                      <td className={`${compactCell} border border-slate-900`}>
                         <span className="font-bold text-slate-900">{getLabel('kelas', 'kelas')} : </span>
                         <span className="font-bold text-slate-900">{slot.kelas || '-'}</span>
                       </td>
                     </tr>
                     <tr className="border-b border-slate-900">
-                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                      <td className={`${compactCell} border border-slate-900`}>
                         <span className="font-bold text-slate-900">{getLabel('mataPelajaran', 'mataPelajaran')} : </span>
                         <span className="font-bold text-emerald-950">{formatMataPelajaran(slot.mataPelajaran)}</span>
                       </td>
                     </tr>
                     {isSlotAlQuran && (
                       <tr className="border-b border-slate-900 bg-amber-50/40">
-                        <td className="p-1.5 sm:p-2 border border-slate-900">
+                        <td className={`${compactCell} border border-slate-900`}>
                           <span className="font-bold text-slate-900">{getLabel('bidang', 'bidang')} : </span>
                           <span className="font-bold text-amber-950">{slot.bidang || ''}</span>
                         </td>
@@ -539,7 +679,7 @@ export const RphPreview: React.FC<Props> = ({
                 <table className="w-full border-collapse">
                   <tbody>
                     <tr className="border-b border-slate-900">
-                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                      <td className={`${compactCell} border border-slate-900`}>
                         <span className="font-bold text-slate-900">{getLabel('tajuk', 'tajuk')} : </span>
                         <span className="font-bold text-slate-900">
                           {slot.tajuk?.kod ? `${slot.tajuk.kod} ` : ''}{slot.tajuk?.teks || '-'}
@@ -548,7 +688,7 @@ export const RphPreview: React.FC<Props> = ({
                     </tr>
                     {slot.subtajuk?.teks && (
                       <tr className="border-b border-slate-900 bg-slate-50/40">
-                        <td className="p-1.5 sm:p-2 border border-slate-900">
+                        <td className={`${compactCell} border border-slate-900`}>
                           <span className="font-bold text-slate-800">{getLabel('subtajuk', 'subtajuk')} : </span>
                           <span className="font-medium text-slate-800">
                             {slot.subtajuk.kod ? `${slot.subtajuk.kod} ` : ''}{slot.subtajuk.teks}
@@ -561,15 +701,9 @@ export const RphPreview: React.FC<Props> = ({
                         <div className="font-bold text-slate-900 mb-1 text-xs">
                           {getLabel('objektif', 'objektifPembelajaran')} :
                         </div>
-                        <ul className="list-disc pr-5 pl-5 space-y-0.5 text-xs">
-                          {sObjektif.filter((o: string) => o.trim()).length > 0 ? (
-                            sObjektif.filter((o: string) => o.trim()).map((obj: string, i: number) => (
-                              <li key={i} className="text-slate-900 font-medium leading-normal">{obj}</li>
-                            ))
-                          ) : (
-                            <li className="text-slate-400 italic list-none">Tiada objektif dimasukkan.</li>
-                          )}
-                        </ul>
+                        <div className="text-xs px-1">
+                          {renderBulletList(sObjektif, 'Tiada objektif dimasukkan.', Boolean(totalSlots && totalSlots >= 2))}
+                        </div>
                       </td>
                     </tr>
                     <tr className="border-b border-slate-900 bg-slate-50/20">
@@ -577,19 +711,13 @@ export const RphPreview: React.FC<Props> = ({
                         <div className="font-bold text-slate-900 mb-1 text-xs">
                           {getLabel('aktiviti', 'aktivitiMurid')} :
                         </div>
-                        <ul className="list-disc pr-5 pl-5 space-y-0.5 text-xs">
-                          {sAktiviti.filter((a: string) => a.trim()).length > 0 ? (
-                            sAktiviti.filter((a: string) => a.trim()).map((akt: string, i: number) => (
-                              <li key={i} className="text-slate-900 font-medium leading-normal">{akt}</li>
-                            ))
-                          ) : (
-                            <li className="text-slate-400 italic list-none">Tiada aktiviti dimasukkan.</li>
-                          )}
-                        </ul>
+                        <div className="text-xs px-1">
+                          {renderBulletList(sAktiviti, 'Tiada aktiviti dimasukkan.', Boolean(totalSlots && totalSlots >= 2))}
+                        </div>
                       </td>
                     </tr>
                     <tr className="border-b border-slate-900 bg-emerald-50/20">
-                      <td className="p-1.5 sm:p-2 border border-slate-900">
+                      <td className={`${compactCell} border border-slate-900`}>
                         <div className="flex flex-wrap items-center gap-3">
                           <span className="font-bold text-slate-900 text-xs">
                             {getLabel('kemahiran', 'kemahiran')} :
@@ -648,25 +776,33 @@ export const RphPreview: React.FC<Props> = ({
     <div
       id="rph-pdf-printable-area"
       dir={isJawi ? 'rtl' : 'ltr'}
-      className={`bg-white text-slate-900 mx-auto p-5 sm:p-7 rounded-xl shadow-lg border border-slate-300 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full max-w-[780px] w-full transition-all ${
-        isJawi ? 'font-jawi text-[13.5px]' : 'font-sans text-[12.5px]'
+      className={`bg-white text-slate-900 mx-auto ${
+        isCompactMulti ? 'p-3 sm:p-4' : 'p-5 sm:p-6'
+      } rounded-xl shadow-lg border border-slate-300 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full max-w-[780px] w-full transition-all ${
+        isJawi
+          ? isCompactMulti
+            ? 'font-jawi text-[12px]'
+            : 'font-jawi text-[13.5px]'
+          : isCompactMulti
+          ? 'font-sans text-[11px]'
+          : 'font-sans text-[12.5px]'
       }`}
       style={{
         color: '#0f172a',
-        lineHeight: 1.45
+        lineHeight: isCompactMulti ? 1.3 : 1.45
       }}
     >
       {/* Header Banner with Nama Sekolah (Only if not already in custom layout) */}
       {!hasCustomHeader && (
-        <div className="text-center pb-3 mb-3 border-b-2 border-emerald-800">
+        <div className={`text-center ${isCompactMulti ? 'pb-1.5 mb-2' : 'pb-2.5 mb-2.5'} border-b-2 border-emerald-800`}>
           {namaSekolah && (
-            <div className="text-xs sm:text-sm font-bold tracking-wider text-slate-800 uppercase mb-0.5">
+            <div className={`${isCompactMulti ? 'text-[11px]' : 'text-xs sm:text-sm'} font-bold tracking-wider text-slate-800 uppercase mb-0.5`}>
               {namaSekolah}
             </div>
           )}
-          <div className="flex items-center justify-center gap-2.5">
+          <div className="flex items-center justify-center gap-2">
             {logoSekolah ? (
-              <div className="w-10 h-10 rounded-full border border-emerald-800 bg-white p-0.5 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+              <div className={`${isCompactMulti ? 'w-8 h-8' : 'w-10 h-10'} rounded-full border border-emerald-800 bg-white p-0.5 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs`}>
                 <img
                   src={logoSekolah}
                   alt="Logo Sekolah"
@@ -674,19 +810,25 @@ export const RphPreview: React.FC<Props> = ({
                 />
               </div>
             ) : (
-              <div className="w-8 h-8 rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+              <div className={`${isCompactMulti ? 'w-7 h-7 text-sm' : 'w-8 h-8 text-base'} rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold shadow-xs shrink-0`}>
                 {isJawi ? 'ق' : 'K'}
               </div>
             )}
             <div>
-              <h2 className={`font-bold text-emerald-950 ${isJawi ? 'text-xl' : 'text-base sm:text-lg uppercase tracking-tight'}`}>
+              <h2 className={`font-bold text-emerald-950 ${
+                isJawi
+                  ? isCompactMulti ? 'text-base' : 'text-xl'
+                  : isCompactMulti ? 'text-sm uppercase tracking-tight' : 'text-base sm:text-lg uppercase tracking-tight'
+              }`}>
                 {isJawi
                   ? 'رانچڠن ڤڠاجرن هارين (RPH) کـافـا'
                   : 'RANCANGAN PENGAJARAN HARIAN (RPH) KAFA'}
               </h2>
-              <p className="text-[11px] text-slate-600 font-medium">
-                {isJawi ? 'تاڤق ستندرد کوريکولوم کـافـا' : 'Tapak Standard Kurikulum KAFA (JAKIM / JAIN)'}
-              </p>
+              {!isCompactMulti && (
+                <p className="text-[11px] text-slate-600 font-medium">
+                  {isJawi ? 'تاڤق ستندرد کوريکولوم کـافـا' : 'Tapak Standard Kurikulum KAFA (JAKIM / JAIN)'}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -774,21 +916,25 @@ export const RphPreview: React.FC<Props> = ({
           })}
         </div>
       ) : layoutStyle === 'classic' ? (
-        /* ==================== FORMAT 1: GRID TAPAK ASAL (2 LAJUR MENGIKUT DOKUMEN TAPAK RPH) ==================== */
-        <div className="space-y-3">
+        /* ==================== FORMAT 1: GRID TAPAK ASAL (AUTO KOMPAK 4 RPH DALAM 1 A4) ==================== */
+        <div className={isCompactMulti ? 'space-y-2' : 'space-y-2.5'}>
           {/* Baris 1: Tarikh, Hari, Minggu (3 Petak Kemas Teratas - Dikongsi untuk Hari Ini) */}
-          <table className="w-full border-collapse border-2 border-slate-900 text-xs sm:text-sm bg-white">
+          <table
+            className={`w-full border-collapse border-2 border-slate-900 bg-white ${
+              isCompactMulti ? 'text-[11px]' : 'text-xs sm:text-sm'
+            }`}
+          >
             <tbody>
               <tr className="bg-slate-50/75">
-                <td className="w-1/3 border border-slate-900 p-2 text-center">
+                <td className={`w-1/3 border border-slate-900 text-center ${isCompactMulti ? 'p-1' : 'p-1.5 sm:p-2'}`}>
                   <span className="font-bold text-slate-900">{getLabel('tarikh', 'tarikh')} : </span>
                   <span className="font-bold text-slate-900">{formatTarikh(data.tarikh)}</span>
                 </td>
-                <td className="w-1/3 border border-slate-900 p-2 text-center">
+                <td className={`w-1/3 border border-slate-900 text-center ${isCompactMulti ? 'p-1' : 'p-1.5 sm:p-2'}`}>
                   <span className="font-bold text-slate-900">{getLabel('hari', 'hari')} : </span>
                   <span className="font-bold text-slate-900">{formatHari(data.hari)}</span>
                 </td>
-                <td className="w-1/3 border border-slate-900 p-2 text-center">
+                <td className={`w-1/3 border border-slate-900 text-center ${isCompactMulti ? 'p-1' : 'p-1.5 sm:p-2'}`}>
                   <span className="font-bold text-slate-900">{getLabel('minggu', 'minggu')} : </span>
                   <span className="font-bold text-slate-900">{data.minggu ? formatNum(data.minggu) : '-'}</span>
                 </td>
@@ -796,12 +942,37 @@ export const RphPreview: React.FC<Props> = ({
             </tbody>
           </table>
 
-          {/* Senarai RPH Kelas (Satu atau Lebih Kelas dalam 1 Lembaran A4) */}
-          {data.slots && data.slots.length > 1 ? (
-            data.slots.map((slot, idx) => renderClassicSlot(slot, idx, data.slots!.length))
-          ) : (
-            renderClassicSlot(data.slots && data.slots.length === 1 ? data.slots[0] : data, 0, 1)
-          )}
+          {/* Senarai RPH Kelas: 3+ kelas guna susunan padat 4-dalam-1 A4 supaya muat jelas dalam 1 muka surat */}
+          {isCompactMulti
+            ? slotList.map((slot, idx) => renderCompactFourPerPageSlot(slot, idx, slotCount))
+            : slotList.map((slot, idx) => renderClassicSlot(slot, idx, slotCount))}
+        </div>
+      ) : slotCount > 1 ? (
+        /* ==================== FORMAT 2 (MULTI-RPH): LAJUR PENUH KOMPAK ==================== */
+        <div className={isCompactMulti ? 'space-y-2' : 'space-y-2.5'}>
+          <table
+            className={`w-full border-collapse border-2 border-slate-900 bg-white ${
+              isCompactMulti ? 'text-[11px]' : 'text-xs sm:text-sm'
+            }`}
+          >
+            <tbody>
+              <tr className="bg-slate-50/75">
+                <td className={`w-1/3 border border-slate-900 text-center ${isCompactMulti ? 'p-1' : 'p-2'}`}>
+                  <span className="font-bold text-slate-900">{getLabel('tarikh', 'tarikh')} : </span>
+                  <span className="font-bold text-slate-900">{formatTarikh(data.tarikh)}</span>
+                </td>
+                <td className={`w-1/3 border border-slate-900 text-center ${isCompactMulti ? 'p-1' : 'p-2'}`}>
+                  <span className="font-bold text-slate-900">{getLabel('hari', 'hari')} : </span>
+                  <span className="font-bold text-slate-900">{formatHari(data.hari)}</span>
+                </td>
+                <td className={`w-1/3 border border-slate-900 text-center ${isCompactMulti ? 'p-1' : 'p-2'}`}>
+                  <span className="font-bold text-slate-900">{getLabel('minggu', 'minggu')} : </span>
+                  <span className="font-bold text-slate-900">{data.minggu ? formatNum(data.minggu) : '-'}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          {slotList.map((slot, idx) => renderCompactFourPerPageSlot(slot, idx, slotCount))}
         </div>
       ) : (
         /* ==================== FORMAT 2: GRID KEMAS & MODEN (SETIAP PETAK BERGARIS TEGAK & JELAS) ==================== */
@@ -998,9 +1169,15 @@ export const RphPreview: React.FC<Props> = ({
 
       {/* Footer Tandatangan Guru & Guru Besar */}
       {!hasCustomSignature && (
-        <div className="mt-5 pt-3 border-t-2 border-slate-400 grid grid-cols-2 text-center text-xs text-slate-800">
+        <div
+          className={`${
+            isCompactMulti ? 'mt-2.5 pt-2' : 'mt-4 pt-3'
+          } border-t-2 border-slate-400 grid grid-cols-2 text-center ${
+            isCompactMulti ? 'text-[11px]' : 'text-xs'
+          } text-slate-800`}
+        >
           <div>
-            <div className="h-10"></div>
+            <div className={isCompactMulti ? 'h-6' : 'h-9'}></div>
             <div className="w-36 border-b border-slate-600 mx-auto"></div>
             <p className="mt-1 font-bold">
               {customLabels?.tandatanganGuru
@@ -1009,7 +1186,7 @@ export const RphPreview: React.FC<Props> = ({
             </p>
           </div>
           <div>
-            <div className="h-10"></div>
+            <div className={isCompactMulti ? 'h-6' : 'h-9'}></div>
             <div className="w-36 border-b border-slate-600 mx-auto"></div>
             <p className="mt-1 font-bold">
               {customLabels?.tandatanganGuruBesar
